@@ -400,9 +400,98 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-void openWatcher(BuildContext context, Watcher w) {
+void openWatcherDetails(BuildContext context, Watcher w) {
   Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => WatcherDetailScreen(watcherId: w.id)),
+  );
+}
+
+/// Quick peek: small bottom card with the essentials and a "More details" button.
+void openWatcher(BuildContext context, Watcher w) {
+  showModalBottomSheet(
+    context: context,
+    showDragHandle: true,
+    builder: (ctx) => Consumer<KavalStore>(
+      builder: (ctx, store, _) {
+        final live = store.watchers.where((x) => x.id == w.id).firstOrNull ?? w;
+        final c = statusColor(live.status);
+        final d = live.lastDetection;
+        final statusText = live.status == WatcherStatus.offline
+            ? offlineText(live)
+            : live.status == WatcherStatus.alert
+                ? (live.issue.isNotEmpty
+                    ? live.issue
+                    : d != null
+                        ? '${d.label} · ${ago(d.time)}'
+                        : 'Alert')
+                : 'OK · watching';
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
+                CircleAvatar(
+                    radius: 22,
+                    backgroundColor: c,
+                    child: const Icon(Icons.videocam, color: Colors.white)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(live.name,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700)),
+                        Text('${live.id} · ${live.range.toUpperCase()}',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54)),
+                      ]),
+                ),
+                BatteryChip(level: live.battery),
+              ]),
+              const SizedBox(height: 14),
+              Row(children: [
+                Icon(
+                    live.status == WatcherStatus.alert
+                        ? Icons.warning_amber_rounded
+                        : live.status == WatcherStatus.offline
+                            ? Icons.cloud_off_outlined
+                            : Icons.check_circle_outline,
+                    color: c),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: Text(statusText,
+                        style: TextStyle(
+                            color: c, fontWeight: FontWeight.w600))),
+              ]),
+              if (d != null && live.status != WatcherStatus.alert) ...[
+                const SizedBox(height: 6),
+                Row(children: [
+                  Icon(detectionIcon(d.type), size: 20, color: Colors.black54),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: Text('Last: ${d.label} · ${ago(d.time)}',
+                          style: const TextStyle(color: Colors.black54))),
+                ]),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    openWatcherDetails(context, live);
+                  },
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('More details · snapshot & history'),
+                ),
+              ),
+            ]),
+          ),
+        );
+      },
+    ),
   );
 }
 
