@@ -99,7 +99,8 @@
   "op2type": "str",
   "duration": "5",
   "units": "s",
-  "extend": true
+  "extend": true,
+  "d": true
  },
  {
   "id": "kv_light",
@@ -126,7 +127,8 @@
    ]
   ],
   "func": "\nconst pin=String(env.get('GPIO_PIN')||'490').trim();\nconst level=msg.payload==='on'?1:0;\nconst g=`/sys/class/gpio/gpio${pin}`;\nmsg.payload=`[ -d ${g} ] || printf ${pin} > /sys/class/gpio/export; printf out > ${g}/direction; printf ${level} > ${g}/value;`;\nreturn msg;\n",
-  "outputs": 1
+  "outputs": 1,
+  "d": true
  },
  {
   "id": "kv_gpio_exec",
@@ -144,7 +146,8 @@
   "addpay": "payload",
   "append": "",
   "useSpawn": "false",
-  "timer": ""
+  "timer": "",
+  "d": true
  },
  {
   "id": "kv_init",
