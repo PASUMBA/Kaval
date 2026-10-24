@@ -251,10 +251,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 10),
                 Card(
                   margin: EdgeInsets.zero,
-                  color: kForest,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: KavalLogo(size: 40),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Image.asset(
+                      'assets/kerala_emblem.png',
+                      height: 40,
+                      fit: BoxFit.contain,
+                      semanticLabel: 'Government of Kerala',
+                    ),
                   ),
                 ),
               ],
@@ -1558,9 +1563,11 @@ class _SnapshotState extends State<_Snapshot> {
               errorBuilder: (_, __, ___) => widget.placeholder,
             );
           }
-          return Image.memory(base64Decode(b64),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => widget.placeholder);
+          return Image.memory(
+            base64Decode(b64),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => widget.placeholder,
+          );
         },
       );
     }
