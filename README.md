@@ -15,10 +15,10 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 | Part | Status |
 | --- | --- |
 | reCamera detection → event classification (elephant/bear = wildlife alert, person at night 18:00–06:00 IST = intrusion, vehicle/cattle/dog/bird = log only, 3-frame hold against false alarms) | Working, tested live |
-| Camera HTTP API: `GET /api/watcher` (JSON), `GET /api/snapshot.jpg`, `GET /api/gimbal`, `GET /api/watcher/raw` | Working, tested live |
+| Camera HTTP API: `GET /api/watcher` (JSON), `GET /api/snapshot.jpg`, `GET /api/gimbal`, `GET /api/watcher/raw`, `GET /api/net` (camera IP, for hotspot setup) | Working, tested live |
 | Audio: 2 s `arecord` sample every 6 s, RMS loudness, 3 loud samples → "chainsaw" event | Working (loudness rule, **not** a trained classifier) |
-| Flutter app: Login → Range select → Map with post pins (green ok / red alert / grey offline) → post detail (battery, last detection, snapshot, history) → Alerts tab with sound → Settings (Demo / Live camera, camera URL, connection status) | Working on Android (APK v1.0.5) and web build |
-| App polls each live post every 2 s, 8 s timeout, pin goes grey after 25 s of silence | Working |
+| Flutter app: Login → Range select → Map with post pins (green ok / red alert / grey offline) → post detail (battery, last detection, snapshot, history) → Alerts tab with sound → Settings (Demo / Live camera, camera URL, connection status) | Working on Android (APK v1.0.6) and web build |
+| App polls each live post every 3 s, 8 s timeout, pin goes grey after 25 s of silence; snapshot fetched once per new detection | Working |
 | Demo mode: simulated posts in 5 ranges so the "network of posts" can be shown with one real camera | Working |
 
 ### Run the project
@@ -45,7 +45,7 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 
 - **Working features:** see table above.
 - **Known limitations:**
-  - "Real-time" is 2 s HTTP polling, no push notifications.
+  - "Real-time" is 3 s HTTP polling, no push notifications.
   - Camera link in the demo was a Cloudflare quick tunnel (camera on USB); the intended link is plain Wi-Fi on the phone hotspot.
   - Login has no real authentication; posts other than KDN-01 are simulated.
   - Audio detection is a loudness threshold, not a chainsaw model.

@@ -4,6 +4,34 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T00:20:00+05:30 — Docs updated for v1.0.6 flow/app changes
+
+- Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
+- Why: Keep the docs matching the three code commits below (3 s polling, `/api/net`, confidence thresholds).
+- Validation: Re-read `lib/store.dart` and the Node-RED flow JSON for the new values and endpoint.
+- Limitations: Documentation only.
+
+## 2026-10-25T00:14:00+05:30 — Flow: confidence thresholds and history dedupe
+
+- Changed: `node-red/kaval_watcher_flow.json`, `node-red/kaval_tab_only.json`; backup `node-red/deployed_2026-10-24_v5.json`.
+- Why: Low-confidence boxes and repeated vehicle guesses were creating noise; min confidence 0.45, vehicle needs 0.7, history keeps one entry per event type in a row.
+- Validation: Flow redeployed on the camera; `/api/watcher` history checked.
+- Limitations: Thresholds tuned by eye on one camera, not measured.
+
+## 2026-10-25T00:04:00+05:30 — Flow: add `GET /api/net`
+
+- Changed: `node-red/kaval_watcher_flow.json`, `node-red/kaval_tab_only.json`.
+- Why: Returns the camera's IP addresses so the camera can be found on the phone hotspot without a serial console.
+- Validation: Endpoint answered on the deployed flow.
+- Limitations: Hotspot mode itself was not demoed tonight (demo used the USB + tunnel link).
+
+## 2026-10-24T23:41:00+05:30 — App v1.0.6: poll every 3 s, snapshot once per detection
+
+- Changed: `lib/store.dart`, `lib/screens_home.dart`, `pubspec.yaml` (1.0.6+13); flow caches the decoded snapshot, history length 10.
+- Why: Reduce load on the USB-powered camera; snapshot now re-fetched only when a new detection arrives instead of on a timer.
+- Validation: Web build against the live camera; reply times stayed under the 8 s timeout.
+- Limitations: None identified in these checks.
+
 ## 2026-10-24T23:35:00+05:30 — Hackathon template docs added
 
 - Changed: Added `RULES.md`, `AGENTS.md`, `SUBMISSION.md`, `AI_USAGE.md`, this change log, `.github/pull_request_template.md`; rewrote `README.md` from Flutter boilerplate to the project overview; extended `.gitignore` with secret-file rules.
