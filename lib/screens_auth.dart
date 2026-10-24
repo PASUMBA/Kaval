@@ -15,6 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _id = TextEditingController();
   final _pw = TextEditingController();
   final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _rpw = TextEditingController();
   String? _post;
   String? _err;
   bool _busy = false;
@@ -22,15 +24,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginResident() async {
     final name = _name.text.trim();
+    final phone = _phone.text.trim();
     if (name.isEmpty || _post == null) {
       setState(() => _err = 'Enter your name and pick the nearest post');
+      return;
+    }
+    if (phone.length < 10 || _rpw.text.length < 4) {
+      setState(() => _err = 'Enter a 10-digit phone and a password (4+ chars)');
       return;
     }
     setState(() {
       _busy = true;
       _err = null;
     });
-    await context.read<KavalStore>().loginResident(name, _post!);
+    final err = await context
+        .read<KavalStore>()
+        .loginResident(name, phone, _rpw.text, _post!);
+    if (!mounted) return;
+    if (err != null) {
+      setState(() {
+        _busy = false;
+        _err = err;
+      });
+    }
   }
 
   Future<void> _login() async {
@@ -43,9 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _busy = true;
       _err = null;
     });
-    await Future.delayed(const Duration(milliseconds: 600));
+    final err = await context.read<KavalStore>().login(id, _pw.text);
     if (!mounted) return;
-    await context.read<KavalStore>().login(id);
+    if (err != null) {
+      setState(() {
+        _busy = false;
+        _err = err;
+      });
+    }
   }
 
   @override
@@ -154,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                       _resident
                           ? 'For people living near the forest edge · വനാതിർത്തിയിലെ നാട്ടുകാർക്ക്'
-                          : 'Demo: any ID and password',
+                          : 'Officer IDs are issued by the Forest Department',
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.5), fontSize: 12)),
                 ],
@@ -179,6 +200,24 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: const InputDecoration(
                 labelText: 'Your name · പേര്',
                 prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone · ഫോൺ',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _rpw,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Password (new or existing)',
+                prefixIcon: Icon(Icons.lock_outline),
               ),
             ),
             const SizedBox(height: 14),

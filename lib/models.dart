@@ -172,16 +172,41 @@ const kRanges = [
 
 /// A sighting reported by a local resident from the Resident mode.
 class SightingReport {
+  final String id;
   final String reporter;
+  final String phone;
   final String watcherId;
   final String type;
   final String note;
   final DateTime time;
   SightingReport({
+    this.id = '',
     required this.reporter,
+    this.phone = '',
     required this.watcherId,
     required this.type,
     required this.note,
     required this.time,
   });
+
+  Map<String, dynamic> toJson() => {
+        'reporter': reporter,
+        'phone': phone,
+        'post': watcherId,
+        'type': type,
+        'note': note,
+        'time': time.toUtc().toIso8601String(),
+      };
+
+  factory SightingReport.fromJson(String id, Map<String, dynamic> j) =>
+      SightingReport(
+        id: id,
+        reporter: (j['reporter'] ?? '').toString(),
+        phone: (j['phone'] ?? '').toString(),
+        watcherId: (j['post'] ?? '').toString(),
+        type: (j['type'] ?? 'other').toString(),
+        note: (j['note'] ?? '').toString(),
+        time: DateTime.tryParse(j['time']?.toString() ?? '')?.toLocal() ??
+            DateTime.now(),
+      );
 }

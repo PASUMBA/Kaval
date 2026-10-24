@@ -11,6 +11,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import 'models.dart';
+import 'export.dart';
 import 'store.dart';
 import 'theme.dart';
 
@@ -618,6 +619,23 @@ class SettingsTab extends StatefulWidget {
 
 class _SettingsTabState extends State<SettingsTab> {
   late final TextEditingController _url;
+  bool _exporting = false;
+
+  Future<void> _export(BuildContext context) async {
+    setState(() => _exporting = true);
+    try {
+      final name = await exportExcel(context.read<KavalStore>());
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Exported $name')));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: kAlert, content: Text('Export failed: $e')));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -687,9 +705,28 @@ class _SettingsTabState extends State<SettingsTab> {
       const SizedBox(height: 12),
       Card(
         child: ListTile(
+          leading: const Icon(Icons.table_view_outlined, color: kForest),
+          title: const Text('Export to Excel'),
+          subtitle: Text(
+              'Posts, detection log per post, ${store.reports.length} resident reports (.xlsx)'),
+          trailing: OutlinedButton(
+            onPressed: _exporting ? null : () => _export(context),
+            child: _exporting
+                ? const SizedBox(
+                    height: 16, width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Text('Export'),
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Card(
+        child: ListTile(
           leading: const Icon(Icons.person_outline),
-          title: Text(store.officer),
-          subtitle: const Text('Signed in'),
+          title: Text(store.officerName.isEmpty
+              ? store.officer
+              : '${store.officerName} (${store.officer})'),
+          subtitle: const Text('Forest Officer · signed in'),
           trailing: TextButton(onPressed: store.logout, child: const Text('Sign out')),
         ),
       ),

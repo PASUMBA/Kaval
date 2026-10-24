@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'backend.dart';
 import 'models.dart';
 
 /// Central state: watchers, polling, notifications, demo mode.
@@ -15,6 +16,7 @@ class KavalStore extends ChangeNotifier {
   final List<SightingReport> reports = [];
   ForestRange? range;
   String officer = '';
+  String officerName = '';
   /// 'officer' (default) or 'resident' (forest-edge villager mode).
   String role = 'officer';
   /// Resident mode: the watch post nearest to the user's home.
@@ -40,6 +42,8 @@ class KavalStore extends ChangeNotifier {
     try {
       final p = await SharedPreferences.getInstance();
       officer = p.getString('officer') ?? '';
+      officerName = p.getString('officerName') ?? '';
+      phone = p.getString('phone') ?? '';
       role = p.getString('role') ?? 'officer';
       homePostId = p.getString('homePost');
       demoMode = p.getBool('demo') ?? true;
@@ -51,10 +55,35 @@ class KavalStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String name) async {
-    officer = name;
-    (await SharedPreferences.getInstance()).setString('officer', name);
+  /// Officer sign-in against the backend. Returns an error text or null.
+  Future<String?> login(String id, String pw) async {
+    final Map<String, dynamic> u;
+    try {
+      u = await Backend.login(id, pw);
+    } catch (e) {
+      return _err(e);
+    }
+    if (u['role'] != 'officer') return 'Not an officer account';
+    officer = id.trim();
+    officerName = (u['name'] ?? '').toString();
+    role = 'officer';
     notifyListeners();
+    await _save((p) async {
+      await p.setString('officer', officer);
+      await p.setString('officerName', officerName);
+      await p.setString('role', 'officer');
+    });
+    return null;
+  }
+
+  String _err(Object e) {
+    final m = e.toString().replaceFirst('Exception: ', '');
+    if (m.contains('SocketException') ||
+        m.contains('Timeout') ||
+        m.contains('ClientException')) {
+      return 'No internet — could not reach the server';
+    }
+    return m;
   }
 
   Future<void> logout() async {
@@ -64,14 +93,25 @@ class KavalStore extends ChangeNotifier {
     stopPolling();
     final p = await SharedPreferences.getInstance();
     await p.remove('officer');
+    await p.remove('officerName');
+    await p.remove('phone');
     await p.remove('role');
     await p.remove('homePost');
     notifyListeners();
   }
 
-  /// Resident sign-in: name + nearest post. Range follows the post.
-  Future<void> loginResident(String name, String postId) async {
+  String phone = '';
+
+  /// Resident sign-in/sign-up (backend keyed by phone). Error text or null.
+  Future<String?> loginResident(
+      String name, String ph, String pw, String postId) async {
+    try {
+      await Backend.signupResident(name, ph, pw, postId);
+    } catch (e) {
+      return _err(e);
+    }
     officer = name;
+    phone = ph;
     role = 'resident';
     homePostId = postId;
     final w = watchers.where((w) => w.id == postId).firstOrNull;
@@ -79,10 +119,12 @@ class KavalStore extends ChangeNotifier {
     notifyListeners();
     await _save((p) async {
       await p.setString('officer', name);
+      await p.setString('phone', ph);
       await p.setString('role', 'resident');
       await p.setString('homePost', postId);
       if (range != null) await p.setString('range', range!.id);
     });
+    return null;
   }
 
   Watcher? get homePost =>
@@ -104,12 +146,18 @@ class KavalStore extends ChangeNotifier {
     if (w == null) return;
     final r = SightingReport(
       reporter: officer,
+      phone: phone,
       watcherId: w.id,
       type: type,
       note: note.trim(),
       time: DateTime.now(),
     );
     reports.insert(0, r);
+    reportError = '';
+    Backend.pushReport(r).catchError((e) {
+      reportError = _err(e);
+      notifyListeners();
+    });
     _notify(w, 'Resident report: ${_cap(type)}',
         '${w.name} · by $officer${r.note.isEmpty ? '' : ' · ${r.note}'}',
         critical: type == 'elephant' || type == 'bear');
@@ -117,6 +165,31 @@ class KavalStore extends ChangeNotifier {
   }
 
   String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  String reportError = '';
+  bool _reportsLoaded = false;
+
+  /// Officers: pull resident reports from the backend (every 4th poll).
+  Future<void> _syncReports() async {
+    try {
+      final list = await Backend.fetchReports();
+      final known = reports.map((r) => r.id).toSet();
+      for (final r in list.reversed) {
+        if (r.id.isEmpty || known.contains(r.id)) continue;
+        reports.insert(0, r);
+        if (_reportsLoaded) {
+          final w = watchers.where((w) => w.id == r.watcherId).firstOrNull;
+          if (w != null) {
+            _notify(w, 'Resident report: ${_cap(r.type)}',
+                '${w.name} · by ${r.reporter}${r.note.isEmpty ? '' : ' · ${r.note}'}',
+                critical: r.type == 'elephant' || r.type == 'bear');
+          }
+        }
+      }
+      reports.sort((a, b) => b.time.compareTo(a.time));
+      _reportsLoaded = true;
+    } catch (_) {}
+  }
 
   Future<void> selectRange(ForestRange r) async {
     range = r;
@@ -258,6 +331,7 @@ class KavalStore extends ChangeNotifier {
 
   Future<void> _poll() async {
     _tick++;
+    if (role == 'officer' && (_tick % 4 == 1)) _syncReports();
     for (final w in rangeWatchers) {
       if (w.isDemo) {
         _simulate(w);
