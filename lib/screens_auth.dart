@@ -37,9 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _busy = true;
       _err = null;
     });
-    final err = await context
-        .read<KavalStore>()
-        .loginResident(name, phone, _rpw.text, _post!);
+    final err = await context.read<KavalStore>().loginResident(
+      name,
+      phone,
+      _rpw.text,
+      _post!,
+    );
     if (!mounted) return;
     if (err != null) {
       setState(() {
@@ -80,108 +83,135 @@ class _LoginScreenState extends State<LoginScreen> {
             colors: [Color(0xFF0B3D2E), Color(0xFF071F18)],
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const KavalLogo(size: 84),
-                  const SizedBox(height: 16),
-                  Text('KAVAL',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: Colors.white,
-                          letterSpacing: 6,
-                          fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Text('കാവൽ · AI Forest Watch Network',
-                      style: TextStyle(color: Colors.white.withOpacity(0.75))),
-                  const SizedBox(height: 6),
-                  Text('Kerala Forest & Wildlife Department',
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.55), fontSize: 12)),
-                  const SizedBox(height: 36),
-                  SegmentedButton<bool>(
-                    style: SegmentedButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.08),
-                      foregroundColor: Colors.white70,
-                      selectedBackgroundColor: const Color(0xFF9BE7B4),
-                      selectedForegroundColor: kForest,
-                    ),
-                    segments: const [
-                      ButtonSegment(
-                          value: false,
-                          label: Text('Forest Officer'),
-                          icon: Icon(Icons.shield_outlined)),
-                      ButtonSegment(
-                          value: true,
-                          label: Text('Local Resident'),
-                          icon: Icon(Icons.home_outlined)),
-                    ],
-                    selected: {_resident},
-                    onSelectionChanged: (s) => setState(() {
-                      _resident = s.first;
-                      _err = null;
-                    }),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_resident) _residentCard(context) else Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: _id,
-                            decoration: const InputDecoration(
-                              labelText: 'Officer ID',
-                              prefixIcon: Icon(Icons.badge_outlined),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: LeafBackdrop(opacity: 0.07)),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const KavalLogo(size: 84),
+                      const SizedBox(height: 16),
+                      Text(
+                        'KAVAL',
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 6,
+                              fontWeight: FontWeight.w800,
                             ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'കാവൽ · AI Forest Watch Network',
+                        style: TextStyle(color: Colors.white.withOpacity(0.75)),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Kerala Forest & Wildlife Department',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.55),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      SegmentedButton<bool>(
+                        style: SegmentedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.08),
+                          foregroundColor: Colors.white70,
+                          selectedBackgroundColor: const Color(0xFF9BE7B4),
+                          selectedForegroundColor: kForest,
+                        ),
+                        segments: const [
+                          ButtonSegment(
+                            value: false,
+                            label: Text('Forest Officer'),
+                            icon: Icon(Icons.shield_outlined),
                           ),
-                          const SizedBox(height: 14),
-                          TextField(
-                            controller: _pw,
-                            obscureText: true,
-                            onSubmitted: (_) => _login(),
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: Icon(Icons.lock_outline),
-                            ),
-                          ),
-                          if (_err != null) ...[
-                            const SizedBox(height: 10),
-                            Text(_err!,
-                                style: const TextStyle(color: Colors.red)),
-                          ],
-                          const SizedBox(height: 18),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: _busy ? null : _login,
-                              child: _busy
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))
-                                  : const Text('Sign in'),
-                            ),
+                          ButtonSegment(
+                            value: true,
+                            label: Text('Local Resident'),
+                            icon: Icon(Icons.home_outlined),
                           ),
                         ],
+                        selected: {_resident},
+                        onSelectionChanged: (s) => setState(() {
+                          _resident = s.first;
+                          _err = null;
+                        }),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      if (_resident)
+                        _residentCard(context)
+                      else
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _id,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Officer ID',
+                                    prefixIcon: Icon(Icons.badge_outlined),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                TextField(
+                                  controller: _pw,
+                                  obscureText: true,
+                                  onSubmitted: (_) => _login(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Password',
+                                    prefixIcon: Icon(Icons.lock_outline),
+                                  ),
+                                ),
+                                if (_err != null) ...[
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    _err!,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                                const SizedBox(height: 18),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton(
+                                    onPressed: _busy ? null : _login,
+                                    child: _busy
+                                        ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text('Sign in'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 18),
+                      Text(
+                        _resident
+                            ? 'For people living near the forest edge · വനാതിർത്തിയിലെ നാട്ടുകാർക്ക്'
+                            : 'Officer IDs are issued by the Forest Department',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 18),
-                  Text(
-                      _resident
-                          ? 'For people living near the forest edge · വനാതിർത്തിയിലെ നാട്ടുകാർക്ക്'
-                          : 'Officer IDs are issued by the Forest Department',
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.5), fontSize: 12)),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -232,8 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 for (final w in ws)
                   DropdownMenuItem(
                     value: w.id,
-                    child: Text('${w.name} (${w.id})',
-                        overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      '${w.name} (${w.id})',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
               ],
               onChanged: (v) => setState(() => _post = v),
@@ -267,7 +299,9 @@ class RangeSelectScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const Padding(
-            padding: EdgeInsets.all(8), child: KavalLogo(size: 36)),
+          padding: EdgeInsets.all(8),
+          child: KavalLogo(size: 36),
+        ),
         title: const Text('Select Forest Range'),
         actions: [
           IconButton(
@@ -280,11 +314,15 @@ class RangeSelectScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Welcome, ${store.officer}',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Welcome, ${store.officer}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 4),
-          Text('Choose the range you are monitoring',
-              style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            'Choose the range you are monitoring',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 16),
           for (final r in kRanges) _RangeTile(range: r),
         ],
@@ -301,21 +339,22 @@ class _RangeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.read<KavalStore>();
     final posts = store.watchers.where((w) => w.range == range.id).toList();
-    final alerts =
-        posts.where((w) => w.status == WatcherStatus.alert).length;
-    final offline =
-        posts.where((w) => w.status == WatcherStatus.offline).length;
+    final alerts = posts.where((w) => w.status == WatcherStatus.alert).length;
+    final offline = posts
+        .where((w) => w.status == WatcherStatus.offline)
+        .length;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: kForest.withOpacity(0.12),
           child: const Icon(Icons.forest, color: kForest),
         ),
-        title: Text(range.name,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          range.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Row(

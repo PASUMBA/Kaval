@@ -277,38 +277,47 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               DrawerHeader(
                 decoration: const BoxDecoration(color: kForest),
-                child: Row(
+                padding: EdgeInsets.zero,
+                child: Stack(
                   children: [
-                    const KavalLogo(size: 48),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    const Positioned.fill(child: LeafBackdrop(opacity: 0.12)),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
                         children: [
-                          const Text(
-                            'KAVAL',
-                            style: TextStyle(
-                              color: Colors.white,
-                              letterSpacing: 3,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            store.officerName.isEmpty
-                                ? store.officer
-                                : '${store.officerName} (${store.officer})',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            store.range?.name ?? '',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
+                          const KavalLogo(size: 48),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'KAVAL',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    letterSpacing: 3,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  store.officerName.isEmpty
+                                      ? store.officer
+                                      : '${store.officerName} (${store.officer})',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  store.range?.name ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
