@@ -273,10 +273,21 @@ class KavalStore extends ChangeNotifier {
     final prevDet = w.lastDetection?.time;
     try {
       final r = await http
-          .get(Uri.parse('${w.baseUrl}/api/watcher'))
+          .get(Uri.parse(w.isRelay
+              ? '${w.baseUrl}/posts/${w.id}.json'
+              : '${w.baseUrl}/api/watcher'))
           .timeout(const Duration(seconds: 8));
       if (r.statusCode != 200) throw Exception('HTTP ${r.statusCode}');
       final j = jsonDecode(r.body);
+      if (j == null) throw Exception('No data on relay yet');
+      if (w.isRelay && j is Map<String, dynamic>) {
+        final pushed = DateTime.tryParse(j['pushed']?.toString() ?? '');
+        if (pushed != null &&
+            DateTime.now().difference(pushed).inSeconds > 40) {
+          throw Exception(
+              'Camera stopped pushing ${DateTime.now().difference(pushed).inSeconds}s ago');
+        }
+      }
       lastPollOk = DateTime.now();
       lastError = '';
       if (j is Map<String, dynamic>) {

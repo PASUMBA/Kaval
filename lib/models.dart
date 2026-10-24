@@ -1,5 +1,8 @@
 enum WatcherStatus { ok, alert, offline }
 
+bool isRelayUrl(String? url) =>
+    url != null && url.contains('firebasedatabase.app');
+
 double _norm(double c) => c > 1 ? c / 100 : c;
 
 class Detection {
@@ -93,6 +96,9 @@ class Watcher {
         lastSeen = lastSeen ?? DateTime.now();
 
   bool get isDemo => baseUrl == null;
+
+  /// Cloud relay (Firebase RTDB REST) instead of the camera's own Node-RED.
+  bool get isRelay => isRelayUrl(baseUrl);
 
   void applyJson(Map<String, dynamic> j) {
     final base = baseUrl ?? '';

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -661,8 +664,8 @@ class _SettingsTabState extends State<SettingsTab> {
               TextField(
                 controller: _url,
                 decoration: const InputDecoration(
-                  labelText: 'Watcher (reCamera Node-RED) URL',
-                  hintText: 'http://192.168.4.2:1880',
+                  labelText: 'Watcher URL (camera or cloud relay)',
+                  hintText: 'http://192.168.4.2:1880  or  https://…firebasedatabase.app',
                 ),
               ),
               const SizedBox(height: 8),
@@ -717,12 +720,42 @@ class _Snapshot extends StatefulWidget {
 }
 
 class _SnapshotState extends State<_Snapshot> {
-  late final Widget _img = Image.network(
-    widget.url,
-    fit: BoxFit.cover,
-    webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
-    errorBuilder: (_, __, ___) => widget.placeholder,
-  );
+  late final Widget _img = _build();
+
+  Widget _build() {
+    final u = widget.url;
+    if (isRelayUrl(u)) {
+      final clean = u.split('?').first;
+      return FutureBuilder<Uint8List?>(
+        future: _fetchRelay(clean),
+        builder: (_, snap) => snap.data == null
+            ? widget.placeholder
+            : Image.memory(snap.data!, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => widget.placeholder),
+      );
+    }
+    return Image.network(
+      u,
+      fit: BoxFit.cover,
+      webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+      errorBuilder: (_, __, ___) => widget.placeholder,
+    );
+  }
+
+  static Future<Uint8List?> _fetchRelay(String url) async {
+    try {
+      final r = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 15));
+      if (r.statusCode != 200) return null;
+      final v = jsonDecode(r.body);
+      if (v is! String || v.isEmpty) return null;
+      return base64Decode(v.replaceFirst(RegExp(r'^data:image/\w+;base64,'), ''));
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => _img;
 }
