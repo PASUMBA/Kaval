@@ -42,7 +42,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _tab = 0;
   final _player = AudioPlayer();
   StreamSubscription? _sub;
 
@@ -94,58 +93,138 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void _open(Widget page, String title) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: page,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = context.watch<KavalStore>();
-    final pages = const [MapTab(), PostsTab(), NotificationsTab(), SettingsTab()];
+    final ws = [...store.rangeWatchers]
+      ..sort((a, b) => a.status == b.status
+          ? a.id.compareTo(b.id)
+          : (a.status == WatcherStatus.alert ? -1 : 1));
+    final alerts = ws.where((w) => w.status == WatcherStatus.alert).toList();
+    final offline = ws.where((w) => w.status == WatcherStatus.offline).length;
+    final newReports = store.reports.length;
+    final banner = alerts.isNotEmpty ? kAlert : (offline > 0 ? kAmber : kOk);
+    final headline = alerts.isNotEmpty
+        ? '${alerts.length} ALERT${alerts.length > 1 ? 'S' : ''}'
+        : 'ALL CLEAR';
+    final sub = alerts.isNotEmpty
+        ? alerts
+            .map((w) =>
+                '${w.name}: ${w.lastDetection != null && w.status == WatcherStatus.alert && w.issue.isEmpty ? w.lastDetection!.label : w.issue}')
+            .join(' · ')
+        : '${ws.length - offline} of ${ws.length} posts watching'
+            '${offline > 0 ? ' · $offline offline' : ''}';
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('KAVAL',
-                style: TextStyle(letterSpacing: 3, fontSize: 16)),
-            Text(store.range?.name ?? '',
-                style: const TextStyle(fontSize: 12, color: Colors.white70)),
-          ],
+        title: InkWell(
+          onTap: store.clearRange,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('KAVAL',
+                  style: TextStyle(letterSpacing: 3, fontSize: 16)),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(store.range?.name ?? '',
+                    style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                const Icon(Icons.expand_more, size: 14, color: Colors.white70),
+              ]),
+            ],
+          ),
         ),
         actions: [
           if (store.demoMode)
             const Padding(
-              padding: EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: 4),
               child: Chip(
                   label: Text('DEMO', style: TextStyle(fontSize: 10)),
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero),
             ),
           IconButton(
-            tooltip: 'Change range',
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: store.clearRange,
+            tooltip: 'Map',
+            icon: const Icon(Icons.map_outlined),
+            onPressed: () => _open(const MapTab(), 'Map'),
           ),
-        ],
-      ),
-      body: pages[_tab],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) {
-          setState(() => _tab = i);
-          if (i == 2) store.markAllRead();
-        },
-        destinations: [
-          const NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
-          const NavigationDestination(
-              icon: Icon(Icons.videocam_outlined), label: 'Posts'),
-          NavigationDestination(
+          IconButton(
+            tooltip: 'Alerts',
             icon: Badge(
               isLabelVisible: store.unread > 0,
               label: Text('${store.unread}'),
               child: const Icon(Icons.notifications_outlined),
             ),
-            label: 'Alerts',
+            onPressed: () {
+              store.markAllRead();
+              _open(const NotificationsTab(), 'Alerts & reports');
+            },
           ),
-          const NavigationDestination(
-              icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => _open(const SettingsTab(), 'Settings'),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          Card(
+            color: banner,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+              child: Row(children: [
+                Icon(
+                    alerts.isNotEmpty
+                        ? Icons.warning_amber_rounded
+                        : Icons.verified_user_outlined,
+                    color: Colors.white,
+                    size: 40),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(headline,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1)),
+                        const SizedBox(height: 4),
+                        Text(sub,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 13)),
+                      ]),
+                ),
+              ]),
+            ),
+          ),
+          if (newReports > 0)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.campaign_outlined, color: kForest),
+                title: Text('$newReports resident report${newReports > 1 ? 's' : ''}'),
+                subtitle: Text(
+                    '${store.reports.first.reporter}: ${store.reports.first.type} · ${ago(store.reports.first.time)}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _open(const NotificationsTab(), 'Alerts & reports'),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+            child: Text('Posts (${ws.length})',
+                style: Theme.of(context).textTheme.titleMedium),
+          ),
+          for (final w in ws) WatcherCard(w: w),
         ],
       ),
     );
