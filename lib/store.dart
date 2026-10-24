@@ -12,8 +12,13 @@ import 'models.dart';
 class KavalStore extends ChangeNotifier {
   final List<Watcher> watchers = [];
   final List<AppNotification> notifications = [];
+  final List<SightingReport> reports = [];
   ForestRange? range;
   String officer = '';
+  /// 'officer' (default) or 'resident' (forest-edge villager mode).
+  String role = 'officer';
+  /// Resident mode: the watch post nearest to the user's home.
+  String? homePostId;
   bool demoMode = true;
   String lastError = '';
   DateTime? lastPollOk;
@@ -35,6 +40,8 @@ class KavalStore extends ChangeNotifier {
     try {
       final p = await SharedPreferences.getInstance();
       officer = p.getString('officer') ?? '';
+      role = p.getString('role') ?? 'officer';
+      homePostId = p.getString('homePost');
       demoMode = p.getBool('demo') ?? true;
       cameraUrl = p.getString('cameraUrl') ?? cameraUrl;
       final rid = p.getString('range');
@@ -52,9 +59,64 @@ class KavalStore extends ChangeNotifier {
 
   Future<void> logout() async {
     officer = '';
-    (await SharedPreferences.getInstance()).remove('officer');
+    role = 'officer';
+    homePostId = null;
+    stopPolling();
+    final p = await SharedPreferences.getInstance();
+    await p.remove('officer');
+    await p.remove('role');
+    await p.remove('homePost');
     notifyListeners();
   }
+
+  /// Resident sign-in: name + nearest post. Range follows the post.
+  Future<void> loginResident(String name, String postId) async {
+    officer = name;
+    role = 'resident';
+    homePostId = postId;
+    final w = watchers.where((w) => w.id == postId).firstOrNull;
+    range = kRanges.where((r) => r.id == w?.range).firstOrNull;
+    notifyListeners();
+    await _save((p) async {
+      await p.setString('officer', name);
+      await p.setString('role', 'resident');
+      await p.setString('homePost', postId);
+      if (range != null) await p.setString('range', range!.id);
+    });
+  }
+
+  Watcher? get homePost =>
+      watchers.where((w) => w.id == homePostId).firstOrNull;
+
+  /// Active elephant/bear alert at the resident's post (within the alert hold).
+  Detection? get homeWildlifeAlert {
+    final w = homePost;
+    if (w == null || w.status != WatcherStatus.alert) return null;
+    final d = w.lastDetection;
+    if (d == null) return null;
+    if (d.type != 'elephant' && d.type != 'bear') return null;
+    if (DateTime.now().difference(d.time).inMinutes > 10) return null;
+    return d;
+  }
+
+  void reportSighting(String type, String note) {
+    final w = homePost;
+    if (w == null) return;
+    final r = SightingReport(
+      reporter: officer,
+      watcherId: w.id,
+      type: type,
+      note: note.trim(),
+      time: DateTime.now(),
+    );
+    reports.insert(0, r);
+    _notify(w, 'Resident report: ${_cap(type)}',
+        '${w.name} · by $officer${r.note.isEmpty ? '' : ' · ${r.note}'}',
+        critical: type == 'elephant' || type == 'bear');
+    notifyListeners();
+  }
+
+  String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Future<void> selectRange(ForestRange r) async {
     range = r;

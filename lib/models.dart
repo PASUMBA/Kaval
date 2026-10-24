@@ -163,3 +163,19 @@ const kRanges = [
   ForestRange('wayanad', 'Sulthan Bathery Range', 'Wayanad WLS', 11.66, 76.26),
   ForestRange('munnar', 'Munnar Range', 'Munnar Division', 10.09, 77.06),
 ];
+
+/// A sighting reported by a local resident from the Resident mode.
+class SightingReport {
+  final String reporter;
+  final String watcherId;
+  final String type;
+  final String note;
+  final DateTime time;
+  SightingReport({
+    required this.reporter,
+    required this.watcherId,
+    required this.type,
+    required this.note,
+    required this.time,
+  });
+}

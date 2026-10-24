@@ -14,8 +14,24 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _id = TextEditingController();
   final _pw = TextEditingController();
+  final _name = TextEditingController();
+  String? _post;
   String? _err;
   bool _busy = false;
+  bool _resident = false;
+
+  Future<void> _loginResident() async {
+    final name = _name.text.trim();
+    if (name.isEmpty || _post == null) {
+      setState(() => _err = 'Enter your name and pick the nearest post');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _err = null;
+    });
+    await context.read<KavalStore>().loginResident(name, _post!);
+  }
 
   Future<void> _login() async {
     final id = _id.text.trim();
@@ -65,7 +81,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.55), fontSize: 12)),
                   const SizedBox(height: 36),
-                  Card(
+                  SegmentedButton<bool>(
+                    style: SegmentedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.08),
+                      foregroundColor: Colors.white70,
+                      selectedBackgroundColor: const Color(0xFF9BE7B4),
+                      selectedForegroundColor: kForest,
+                    ),
+                    segments: const [
+                      ButtonSegment(
+                          value: false,
+                          label: Text('Forest Officer'),
+                          icon: Icon(Icons.shield_outlined)),
+                      ButtonSegment(
+                          value: true,
+                          label: Text('Local Resident'),
+                          icon: Icon(Icons.home_outlined)),
+                    ],
+                    selected: {_resident},
+                    onSelectionChanged: (s) => setState(() {
+                      _resident = s.first;
+                      _err = null;
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_resident) _residentCard(context) else Card(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -111,13 +151,68 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Text('Demo: any ID and password',
+                  Text(
+                      _resident
+                          ? 'For people living near the forest edge · വനാതിർത്തിയിലെ നാട്ടുകാർക്ക്'
+                          : 'Demo: any ID and password',
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.5), fontSize: 12)),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _residentCard(BuildContext context) {
+    final ws = context.read<KavalStore>().watchers;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            TextField(
+              controller: _name,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Your name · പേര്',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 14),
+            DropdownButtonFormField<String>(
+              initialValue: _post,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Nearest watch post · അടുത്ത പോസ്റ്റ്',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+              items: [
+                for (final w in ws)
+                  DropdownMenuItem(
+                    value: w.id,
+                    child: Text('${w.name} (${w.id})',
+                        overflow: TextOverflow.ellipsis),
+                  ),
+              ],
+              onChanged: (v) => setState(() => _post = v),
+            ),
+            if (_err != null) ...[
+              const SizedBox(height: 10),
+              Text(_err!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _busy ? null : _loginResident,
+                icon: const Icon(Icons.notifications_active_outlined),
+                label: const Text('Get elephant alerts'),
+              ),
+            ),
+          ],
         ),
       ),
     );

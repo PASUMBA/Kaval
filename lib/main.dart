@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'screens_auth.dart';
 import 'screens_home.dart';
+import 'screens_resident.dart';
 import 'store.dart';
 import 'theme.dart';
 
@@ -34,6 +35,9 @@ class _Root extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<KavalStore>();
     if (store.officer.isEmpty) return const LoginScreen();
+    if (store.role == 'resident' && store.homePostId != null) {
+      return const ResidentHomeScreen();
+    }
     if (store.range == null) return const RangeSelectScreen();
     return const HomeScreen();
   }
