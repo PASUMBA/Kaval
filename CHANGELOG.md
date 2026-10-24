@@ -4,6 +4,62 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T03:50:00+05:30 — Docs updated for v1.0.7–v1.0.9
+
+- Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
+- Why: Document Resident mode, Firebase relay/backend, officer home redesign and Excel export; record the open-database security limitation.
+- Validation: Re-read `lib/backend.dart`, `lib/store.dart`, `lib/screens_resident.dart`, `lib/export.dart`, `pubspec.yaml` (1.0.9+16) and the flow's `kv_push_fn`.
+- Limitations: Documentation only.
+
+## 2026-10-25T03:36:00+05:30 — Per-detection photo history; map logo
+
+- Changed: `lib/screens_home.dart`, `lib/models.dart`, `node-red/kaval_watcher_flow.json`, `tools/patch_snaphist.py`.
+- Why: History list showed text only; the camera now pushes each detection's frame to `snaphist/<id>/<time>` on the relay and the app shows thumbnails (tap to enlarge). Kaval logo beside the menu button.
+- Validation: Thumbnails loaded from the relay on the web build after live detections.
+- Limitations: Thumbnails are base64 JSON on the relay, not real image hosting.
+
+## 2026-10-25T03:26:00+05:30 — Web: clear stale service workers
+
+- Changed: `web/index.html`, `web/flutter_service_worker.js`.
+- Why: Older web builds left a service worker that served a blank page after updates.
+- Validation: Reloaded the hosted web build; page rendered.
+- Limitations: One extra reload on first visit after an update.
+
+## 2026-10-25T03:20:00+05:30 — Excel export date range
+
+- Changed: `lib/export.dart`, `lib/screens_home.dart` (`ExportChoice`).
+- Why: Officers asked for Today / 7 days / 30 days / custom / everything instead of a single full dump.
+- Validation: Exported each option on the web build; sheets open in Excel.
+- Limitations: Events come from the relay `events/<id>`, falling back to in-app history for simulated posts.
+
+## 2026-10-25T02:39:00+05:30 → 03:18 — Officer home redesign
+
+- Changed: `lib/screens_home.dart` (`HomeScreen`, `MapTab`, drawer), `lib/store.dart` (more demo posts).
+- Why: Simpler officer flow: full-screen OpenTopoMap (tried Esri satellite/topo first), compact status card, floating menu, tap-pin quick-peek card with "More details", bottom tabs Map / Posts / Alerts, drawer with Export Excel / Settings / Change range / Sign out. Live posts start as "Connecting…" instead of green; no spurious offline/online notifications at start. 20 demo posts across all 5 ranges.
+- Validation: Walked through every screen on web and Android (APK v1.0.9).
+- Limitations: Map tiles need internet.
+
+## 2026-10-25T02:32:00+05:30 — v1.0.9: Firebase backend (users, reports, events, Excel export)
+
+- Changed: `lib/backend.dart` (new), `lib/export.dart` (new), `lib/download_web.dart` / `download_stub.dart`, `lib/screens_auth.dart`, `lib/store.dart`, `pubspec.yaml` (`excel`, `share_plus`, `path_provider`, `crypto`, `web`).
+- Why: Real officer login (`users/<id>` with salted SHA-256 hash), resident sign-up by phone, shared resident reports visible in the officer Alerts tab, per-post detection log `events/<id>` written by the camera, Excel export for the Range Officer.
+- Validation: Officer login, resident sign-up, report round-trip and export tested on the web build against the live database.
+- Limitations: Database has no security rules and no Firebase Auth — anyone with the URL can read/write. Not production security.
+
+## 2026-10-25T02:10:00+05:30 — v1.0.8: cloud relay
+
+- Changed: `node-red/kaval_watcher_flow.json` (`kv_push_fn`, `PUT relay`, `GET /api/relay`), `tools/add_relay_push.py`, `node-red/deployed_2026-10-24_relay.json`, `lib/store.dart`, `lib/models.dart` (`isRelayUrl`).
+- Why: Phone and camera are rarely on the same network; the camera now pushes state every 3 s and the snapshot on change to Firebase RTDB, and the app's Watcher URL can be the relay instead of the camera. Relay post is offline if nothing pushed for 40 s.
+- Validation: Live detections reached the app over the relay with the phone on mobile data.
+- Limitations: Relay URL hard-coded as default (`kRelayDb`, `KV_RELAY`).
+
+## 2026-10-25T01:20:00+05:30 — v1.0.7: Resident mode
+
+- Changed: `lib/screens_resident.dart` (new), `lib/screens_auth.dart` (role picker), `lib/store.dart`, `assets/bee.wav`, `pubspec.yaml` (1.0.7+14).
+- Why: Villagers at the forest edge need the alert too: one post, one big status, elephant alert banner, bee-sound deterrent (auto on elephant/bear, manual button) and a one-tap sighting report.
+- Validation: Resident flow checked on web and Android with demo triggers and a live detection.
+- Limitations: Bee sound plays from the phone speaker only; no field deterrent hardware.
+
 ## 2026-10-25T00:20:00+05:30 — Docs updated for v1.0.6 flow/app changes
 
 - Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
