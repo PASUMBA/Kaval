@@ -430,5 +430,73 @@
   ],
   "statusCode": "",
   "headers": {}
+ },
+ {
+  "id": "kv_net_in",
+  "type": "http in",
+  "z": "kv_tab",
+  "name": "GET /api/net",
+  "url": "/api/net",
+  "method": "get",
+  "upload": false,
+  "swaggerDoc": "",
+  "x": 120,
+  "y": 640,
+  "wires": [
+   [
+    "kv_net_exec"
+   ]
+  ]
+ },
+ {
+  "id": "kv_net_exec",
+  "type": "exec",
+  "z": "kv_tab",
+  "command": "ip -4 -o addr; iwgetid -r 2>/dev/null || cat /proc/net/wireless",
+  "addpay": "",
+  "append": "",
+  "useSpawn": "false",
+  "timer": "5",
+  "winHide": false,
+  "oldrc": false,
+  "name": "ip addr",
+  "x": 300,
+  "y": 640,
+  "wires": [
+   [
+    "kv_net_fn"
+   ],
+   [
+    "kv_net_fn"
+   ],
+   []
+  ]
+ },
+ {
+  "id": "kv_net_fn",
+  "type": "function",
+  "z": "kv_tab",
+  "name": "text",
+  "func": "msg.headers={'Content-Type':'text/plain','Cache-Control':'no-store'}; msg.payload=String(msg.payload); return msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 460,
+  "y": 640,
+  "wires": [
+   [
+    "kv_net_res"
+   ]
+  ]
+ },
+ {
+  "id": "kv_net_res",
+  "type": "http response",
+  "z": "kv_tab",
+  "name": "",
+  "statusCode": "",
+  "headers": {},
+  "x": 620,
+  "y": 640,
+  "wires": []
  }
 ]
