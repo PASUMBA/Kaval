@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:excel/excel.dart';
+import 'package:excel/excel.dart' hide Border;
+import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -11,7 +12,12 @@ import 'store.dart';
 
 /// Officer export: Posts, Reports and one sheet per post with its detection
 /// log (from the backend events/<postId>, falling back to in-app history).
-Future<String> exportExcel(KavalStore store) async {
+Future<String> exportExcel(KavalStore store, {DateTimeRange? range}) async {
+  bool inRange(DateTime? t) =>
+      range == null ||
+      (t != null &&
+          !t.isBefore(range.start) &&
+          t.isBefore(range.end.add(const Duration(days: 1))));
   final fmt = DateFormat('yyyy-MM-dd HH:mm:ss');
   final ex = Excel.createExcel();
   ex.rename('Sheet1', 'Posts');
@@ -53,6 +59,7 @@ Future<String> exportExcel(KavalStore store) async {
     for (final h in ['Time', 'Post', 'Post name', 'Type', 'Reporter', 'Phone', 'Note'])
       TextCellValue(h)
   ]);
+  reports = reports.where((r) => inRange(r.time)).toList();
   for (final r in reports) {
     final w = store.watchers.where((w) => w.id == r.watcherId).firstOrNull;
     rs.appendRow([
@@ -76,6 +83,7 @@ Future<String> exportExcel(KavalStore store) async {
     if (ev != null && ev.isNotEmpty) {
       for (final e in ev) {
         final t = DateTime.tryParse(e['time']?.toString() ?? '')?.toLocal();
+        if (!inRange(t)) continue;
         final c = (e['confidence'] ?? 0).toDouble();
         sh.appendRow([
           TextCellValue(t == null ? '' : fmt.format(t)),
@@ -87,6 +95,7 @@ Future<String> exportExcel(KavalStore store) async {
       }
     } else {
       for (final Detection h in w.history) {
+        if (!inRange(h.time)) continue;
         sh.appendRow([
           TextCellValue(fmt.format(h.time)),
           TextCellValue(w.id),
@@ -100,7 +109,10 @@ Future<String> exportExcel(KavalStore store) async {
 
   final bytes = ex.encode();
   if (bytes == null) throw Exception('Could not build the Excel file');
-  final name = 'kaval_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.xlsx';
+  final tag = range == null
+      ? 'all'
+      : '${DateFormat('yyyyMMdd').format(range.start)}-${DateFormat('yyyyMMdd').format(range.end)}';
+  final name = 'kaval_$tag.xlsx';
   const mime =
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   if (await downloadBytes(bytes, name, mime)) return name;

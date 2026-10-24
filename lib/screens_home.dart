@@ -122,9 +122,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _export() async {
     if (_exporting) return;
+    final range = await pickExportRange(context);
+    if (range == null || !mounted) return;
     setState(() => _exporting = true);
     try {
-      final name = await exportExcel(context.read<KavalStore>());
+      final name = await exportExcel(context.read<KavalStore>(),
+          range: range.isAll ? null : range.range);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -403,6 +406,68 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class ExportChoice {
+  final DateTimeRange? range;
+  const ExportChoice(this.range);
+  bool get isAll => range == null;
+}
+
+/// Date-range chooser for the Excel export. Returns null if cancelled.
+Future<ExportChoice?> pickExportRange(BuildContext context) async {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  DateTimeRange last(int days) =>
+      DateTimeRange(start: today.subtract(Duration(days: days - 1)), end: today);
+  return showModalBottomSheet<ExportChoice>(
+    context: context,
+    showDragHandle: true,
+    builder: (ctx) => SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: Text('Export Excel — choose period',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        ),
+        ListTile(
+          leading: const Icon(Icons.today),
+          title: const Text('Today'),
+          onTap: () => Navigator.pop(ctx, ExportChoice(last(1))),
+        ),
+        ListTile(
+          leading: const Icon(Icons.date_range),
+          title: const Text('Last 7 days'),
+          onTap: () => Navigator.pop(ctx, ExportChoice(last(7))),
+        ),
+        ListTile(
+          leading: const Icon(Icons.calendar_month),
+          title: const Text('Last 30 days'),
+          onTap: () => Navigator.pop(ctx, ExportChoice(last(30))),
+        ),
+        ListTile(
+          leading: const Icon(Icons.edit_calendar_outlined),
+          title: const Text('Custom range…'),
+          onTap: () async {
+            final r = await showDateRangePicker(
+              context: ctx,
+              firstDate: DateTime(2025),
+              lastDate: today,
+              initialDateRange: last(7),
+            );
+            if (!ctx.mounted) return;
+            Navigator.pop(ctx, r == null ? null : ExportChoice(r));
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.all_inclusive),
+          title: const Text('Everything'),
+          onTap: () => Navigator.pop(ctx, const ExportChoice(null)),
+        ),
+        const SizedBox(height: 8),
+      ]),
+    ),
+  );
 }
 
 void openWatcherDetails(BuildContext context, Watcher w) {
@@ -1208,9 +1273,12 @@ class _SettingsTabState extends State<SettingsTab> {
   bool _exporting = false;
 
   Future<void> _export(BuildContext context) async {
+    final range = await pickExportRange(context);
+    if (range == null || !context.mounted) return;
     setState(() => _exporting = true);
     try {
-      final name = await exportExcel(context.read<KavalStore>());
+      final name = await exportExcel(context.read<KavalStore>(),
+          range: range.isAll ? null : range.range);
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
