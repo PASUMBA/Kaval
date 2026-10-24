@@ -577,14 +577,49 @@ class NotificationsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<KavalStore>();
     final ns = store.notifications;
-    if (ns.isEmpty) {
+    final rs = store.reports;
+    if (ns.isEmpty && rs.isEmpty) {
       return const Center(child: Text('No alerts yet'));
     }
+    final reportRows = rs.isEmpty ? 0 : 1 + rs.take(5).length + 1;
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: ns.length,
+      itemCount: reportRows + ns.length,
       itemBuilder: (_, i) {
-        final n = ns[i];
+        if (i < reportRows) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+              child: Text('Resident reports (${rs.length})',
+                  style: Theme.of(context).textTheme.titleMedium),
+            );
+          }
+          if (i == reportRows - 1) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+              child: Text('Alerts',
+                  style: Theme.of(context).textTheme.titleMedium),
+            );
+          }
+          final r = rs[i - 1];
+          final w = store.watchers.where((w) => w.id == r.watcherId).firstOrNull;
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor:
+                    (r.type == 'elephant' || r.type == 'bear') ? kAlert : kForest,
+                child: Icon(detectionIcon(r.type), color: Colors.white),
+              ),
+              title: Text('${r.type[0].toUpperCase()}${r.type.substring(1)} · ${w?.name ?? r.watcherId}'),
+              subtitle: Text(
+                  '${r.reporter}${r.phone.isEmpty ? '' : ' · ${r.phone}'}${r.note.isEmpty ? '' : ' · ${r.note}'}\n${ago(r.time)}'),
+              isThreeLine: true,
+              onTap: w == null ? null : () => openWatcher(context, w),
+            ),
+          );
+        }
+        final n = ns[i - reportRows];
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
