@@ -96,6 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  int _tab = 0;
+  bool _exporting = false;
+
   void _open(Widget page, String title) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => Scaffold(
@@ -105,16 +108,29 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+  Future<void> _export() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final name = await exportExcel(context.read<KavalStore>());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Exported $name')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: kAlert, content: Text('Export failed: $e')));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = context.watch<KavalStore>();
-    final ws = [...store.rangeWatchers]
-      ..sort((a, b) => a.status == b.status
-          ? a.id.compareTo(b.id)
-          : (a.status == WatcherStatus.alert ? -1 : 1));
+    final ws = store.rangeWatchers;
     final alerts = ws.where((w) => w.status == WatcherStatus.alert).toList();
     final offline = ws.where((w) => w.status == WatcherStatus.offline).length;
-    final newReports = store.reports.length;
     final banner = alerts.isNotEmpty ? kAlert : (offline > 0 ? kAmber : kOk);
     final headline = alerts.isNotEmpty
         ? '${alerts.length} ALERT${alerts.length > 1 ? 'S' : ''}'
@@ -122,61 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final sub = alerts.isNotEmpty
         ? alerts
             .map((w) =>
-                '${w.name}: ${w.lastDetection != null && w.status == WatcherStatus.alert && w.issue.isEmpty ? w.lastDetection!.label : w.issue}')
+                '${w.name}: ${w.lastDetection != null && w.issue.isEmpty ? w.lastDetection!.label : w.issue}')
             .join(' · ')
         : '${ws.length - offline} of ${ws.length} posts watching'
             '${offline > 0 ? ' · $offline offline' : ''}';
-    return Scaffold(
-      appBar: AppBar(
-        title: InkWell(
-          onTap: store.clearRange,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('KAVAL',
-                  style: TextStyle(letterSpacing: 3, fontSize: 16)),
-              Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(store.range?.name ?? '',
-                    style: const TextStyle(fontSize: 12, color: Colors.white70)),
-                const Icon(Icons.expand_more, size: 14, color: Colors.white70),
-              ]),
-            ],
-          ),
-        ),
-        actions: [
-          if (store.demoMode)
-            const Padding(
-              padding: EdgeInsets.only(right: 4),
-              child: Chip(
-                  label: Text('DEMO', style: TextStyle(fontSize: 10)),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero),
-            ),
-          IconButton(
-            tooltip: 'Map',
-            icon: const Icon(Icons.map_outlined),
-            onPressed: () => _open(const MapTab(), 'Map'),
-          ),
-          IconButton(
-            tooltip: 'Alerts',
-            icon: Badge(
-              isLabelVisible: store.unread > 0,
-              label: Text('${store.unread}'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () {
-              store.markAllRead();
-              _open(const NotificationsTab(), 'Alerts & reports');
-            },
-          ),
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => _open(const SettingsTab(), 'Settings'),
-          ),
-        ],
-      ),
-      body: Stack(children: [
+    final pages = [
+      Stack(children: [
         const MapTab(showStats: false),
         Positioned(
           left: 12,
@@ -215,49 +182,131 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        DraggableScrollableSheet(
-          initialChildSize: 0.22,
-          minChildSize: 0.12,
-          maxChildSize: 0.85,
-          snap: true,
-          builder: (_, ctl) => Material(
-            elevation: 12,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(18)),
-            child: ListView(
-              controller: ctl,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                        color: Colors.black26,
-                        borderRadius: BorderRadius.circular(2)),
-                  ),
-                ),
-                Row(children: [
-                  Text('Posts (${ws.length})',
-                      style: Theme.of(context).textTheme.titleMedium),
-                  const Spacer(),
-                  if (newReports > 0)
-                    TextButton.icon(
-                      onPressed: () =>
-                          _open(const NotificationsTab(), 'Alerts & reports'),
-                      icon: const Icon(Icons.campaign_outlined, size: 18),
-                      label: Text('$newReports report${newReports > 1 ? 's' : ''}'),
-                    ),
-                ]),
-                const SizedBox(height: 6),
-                for (final w in ws) WatcherCard(w: w),
-              ],
-            ),
-          ),
-        ),
       ]),
+      const PostsTab(),
+      const NotificationsTab(),
+    ];
+    return Scaffold(
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: kForest),
+              child: Row(children: [
+                const KavalLogo(size: 48),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('KAVAL',
+                            style: TextStyle(
+                                color: Colors.white,
+                                letterSpacing: 3,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700)),
+                        Text(
+                            store.officerName.isEmpty
+                                ? store.officer
+                                : '${store.officerName} (${store.officer})',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                        Text(store.range?.name ?? '',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                      ]),
+                ),
+              ]),
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_view_outlined),
+              title: const Text('Export Excel'),
+              subtitle: const Text('Posts · detections · resident reports'),
+              trailing: _exporting
+                  ? const SizedBox(
+                      height: 18, width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
+              onTap: () {
+                Navigator.pop(context);
+                _export();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Settings'),
+              subtitle: Text(store.demoMode ? 'Demo mode' : 'Live camera'),
+              onTap: () {
+                Navigator.pop(context);
+                _open(const SettingsTab(), 'Settings');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_horiz),
+              title: const Text('Change range'),
+              subtitle: Text(store.range?.name ?? ''),
+              onTap: () {
+                Navigator.pop(context);
+                store.clearRange();
+              },
+            ),
+            const Spacer(),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout, color: kAlert),
+              title: const Text('Sign out'),
+              onTap: () {
+                Navigator.pop(context);
+                store.logout();
+              },
+            ),
+          ]),
+        ),
+      ),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('KAVAL',
+                style: TextStyle(letterSpacing: 3, fontSize: 16)),
+            Text(store.range?.name ?? '',
+                style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          ],
+        ),
+        actions: [
+          if (store.demoMode)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Chip(
+                  label: Text('DEMO', style: TextStyle(fontSize: 10)),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero),
+            ),
+        ],
+      ),
+      body: pages[_tab],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tab,
+        onDestinationSelected: (i) {
+          setState(() => _tab = i);
+          if (i == 2) store.markAllRead();
+        },
+        destinations: [
+          const NavigationDestination(
+              icon: Icon(Icons.map_outlined), label: 'Map'),
+          const NavigationDestination(
+              icon: Icon(Icons.videocam_outlined), label: 'Posts'),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: store.unread > 0,
+              label: Text('${store.unread}'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            label: 'Alerts',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -289,17 +338,15 @@ class MapTab extends StatelessWidget {
                   ws.map((w) => w.lat).reduce((a, b) => a + b) / ws.length,
                   ws.map((w) => w.lon).reduce((a, b) => a + b) / ws.length),
           initialZoom: 12.3,
+          minZoom: 5,
+          maxZoom: 19,
         ),
         children: [
           TileLayer(
             urlTemplate:
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
             userAgentPackageName: 'in.pasulabs.kaval',
-          ),
-          TileLayer(
-            urlTemplate:
-                'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-            userAgentPackageName: 'in.pasulabs.kaval',
+            maxNativeZoom: 19,
           ),
           MarkerLayer(
             markers: [
