@@ -237,6 +237,8 @@ class KavalStore extends ChangeNotifier {
         lat: 10.1715,
         lon: 76.6902,
         baseUrl: demoMode ? null : cameraUrl,
+        status: demoMode ? WatcherStatus.ok : WatcherStatus.offline,
+        lastSeen: demoMode ? null : DateTime.fromMillisecondsSinceEpoch(0),
         battery: 87,
       ),
       Watcher(
@@ -365,7 +367,8 @@ class KavalStore extends ChangeNotifier {
       lastPollOk = DateTime.now();
       lastError = '';
       if (j is Map<String, dynamic>) {
-        final wasOffline = w.status == WatcherStatus.offline;
+        final wasOffline =
+            w.status == WatcherStatus.offline && w.lastSeen.year > 2000;
         w.applyJson(j);
         if (wasOffline) {
           _notify(w, 'Post back online', '${w.name} reconnected',
@@ -384,7 +387,8 @@ class KavalStore extends ChangeNotifier {
     } catch (e) {
       lastError = e.toString();
       if (DateTime.now().difference(w.lastSeen).inSeconds > 25 &&
-          w.status != WatcherStatus.offline) {
+          w.status != WatcherStatus.offline &&
+          w.lastSeen.year > 2000) {
         w.status = WatcherStatus.offline;
         _notify(w, 'Post offline', '${w.name} not responding',
             critical: false);

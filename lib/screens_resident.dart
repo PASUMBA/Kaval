@@ -158,7 +158,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                         ? 'BEAR NEARBY'
                         : 'ELEPHANT NEARBY')
                     : offline
-                        ? 'POST OFFLINE'
+                        ? (w.lastSeen.year < 2000 ? 'CONNECTING…' : 'POST OFFLINE')
                         : 'ALL CLEAR',
                 style: const TextStyle(
                     color: Colors.white,
@@ -180,7 +180,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                 alert != null
                     ? '${w.name} · ${ago(alert.time)}\nStay indoors. Keep away from the forest edge.'
                     : offline
-                        ? 'Last seen ${ago(w.lastSeen)}'
+                        ? (w.lastSeen.year < 2000 ? 'Connecting…' : 'Last seen ${ago(w.lastSeen)}')
                         : 'No elephant near ${w.name}\nLast check ${ago(w.lastSeen)}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70, height: 1.4),

@@ -27,6 +27,9 @@ String statusText(WatcherStatus s) => switch (s) {
       WatcherStatus.offline => 'Offline',
     };
 
+String offlineText(Watcher w) =>
+    w.lastSeen.year < 2000 ? 'Connecting…' : 'Offline · last seen ${ago(w.lastSeen)}';
+
 String ago(DateTime t) {
   final d = DateTime.now().difference(t);
   if (d.inSeconds < 60) return '${d.inSeconds}s ago';
@@ -442,7 +445,7 @@ class WatcherCard extends StatelessWidget {
         subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 2),
           Text(w.status == WatcherStatus.offline
-              ? 'Offline · last seen ${ago(w.lastSeen)}'
+              ? offlineText(w)
               : w.issue.isNotEmpty
                   ? w.issue
                   : d == null
@@ -524,7 +527,7 @@ class WatcherDetailScreen extends StatelessWidget {
                                 ? w.issue
                                 : '${d?.label ?? 'Alert'} · ${d == null ? '' : ago(d.time)}')
                             : w.status == WatcherStatus.offline
-                                ? 'Offline · last seen ${ago(w.lastSeen)}'
+                                ? offlineText(w)
                                 : 'All normal · watching',
                         style: const TextStyle(color: Colors.white70),
                       ),
@@ -559,7 +562,7 @@ class WatcherDetailScreen extends StatelessWidget {
                       : null),
               _kv('Link',
                   w.isDemo ? 'Demo post' : '${w.baseUrl} · Wi-Fi'),
-              _kv('Last heartbeat', ago(w.lastSeen)),
+              _kv('Last heartbeat', w.lastSeen.year < 2000 ? '—' : ago(w.lastSeen)),
             ]),
           ),
         ),
