@@ -343,10 +343,9 @@ class MapTab extends StatelessWidget {
         ),
         children: [
           TileLayer(
-            urlTemplate:
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            urlTemplate: 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'in.pasulabs.kaval',
-            maxNativeZoom: 19,
+            maxNativeZoom: 17,
           ),
           MarkerLayer(
             markers: [
