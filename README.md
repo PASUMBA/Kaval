@@ -62,7 +62,7 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
   - Map tiles: [OpenTopoMap](https://opentopomap.org/about) (© OpenStreetMap contributors, SRTM; style CC-BY-SA)
   - Backend: [Firebase Realtime Database](https://firebase.google.com/docs/database) REST API (free tier)
   - Detection model: stock `yolo11n` (COCO classes) shipped with the Seeed reCamera, run through [Node-RED](https://nodered.org/) on the camera
-  - Post locations are approximate public coordinates of Kerala forest ranges, entered by hand; bee sound and alert sound are short royalty-free clips
+  - Post locations are approximate public coordinates of Kerala forest ranges, entered by hand
 
 ## Repository layout
 
