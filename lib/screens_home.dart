@@ -180,7 +180,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Expanded(
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: (MediaQuery.of(context).size.width - 90).clamp(
+                      200.0,
+                      400.0,
+                    ),
+                  ),
                   child: Card(
                     margin: EdgeInsets.zero,
                     color: banner,
@@ -419,86 +425,126 @@ void openWatcher(BuildContext context, Watcher w) {
         final statusText = live.status == WatcherStatus.offline
             ? offlineText(live)
             : live.status == WatcherStatus.alert
-                ? (live.issue.isNotEmpty
-                    ? live.issue
-                    : d != null
-                        ? '${d.label} · ${ago(d.time)}'
-                        : 'Alert')
-                : 'OK · watching';
+            ? (live.issue.isNotEmpty
+                  ? live.issue
+                  : d != null
+                  ? '${d.label} · ${ago(d.time)}'
+                  : 'Alert')
+            : 'OK · watching';
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 4, 24, 28),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                CircleAvatar(
-                    radius: 30,
-                    backgroundColor: c,
-                    child: const Icon(Icons.videocam,
-                        color: Colors.white, size: 30)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(live.name,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: c,
+                      child: const Icon(
+                        Icons.videocam,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            live.name,
                             style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.w800)),
-                        Text('${live.id} · ${live.range.toUpperCase()}',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            '${live.id} · ${live.range.toUpperCase()}',
                             style: const TextStyle(
-                                fontSize: 14, color: Colors.black54)),
-                      ]),
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    BatteryChip(level: live.battery),
+                  ],
                 ),
-                BatteryChip(level: live.battery),
-              ]),
-              const SizedBox(height: 18),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
                     color: c.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12)),
-                child: Row(children: [
-                  Icon(
-                      live.status == WatcherStatus.alert
-                          ? Icons.warning_amber_rounded
-                          : live.status == WatcherStatus.offline
-                              ? Icons.cloud_off_outlined
-                              : Icons.check_circle_outline,
-                      color: c,
-                      size: 28),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: Text(statusText,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        live.status == WatcherStatus.alert
+                            ? Icons.warning_amber_rounded
+                            : live.status == WatcherStatus.offline
+                            ? Icons.cloud_off_outlined
+                            : Icons.check_circle_outline,
+                        color: c,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          statusText,
                           style: TextStyle(
-                              color: c,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700))),
-                ]),
-              ),
-              const SizedBox(height: 12),
-              _peekRow(
-                  d == null ? Icons.visibility_off_outlined : detectionIcon(d.type),
-                  'Last detection',
-                  d == null ? 'Nothing yet' : '${d.label} · ${ago(d.time)}'),
-              _peekRow(Icons.favorite_border, 'Last heartbeat',
-                  live.lastSeen.year < 2000 ? '—' : ago(live.lastSeen)),
-              _peekRow(Icons.place_outlined, 'Location',
-                  '${live.lat.toStringAsFixed(4)}, ${live.lon.toStringAsFixed(4)}'),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    openWatcherDetails(context, live);
-                  },
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text('More details · snapshot & history',
-                      style: TextStyle(fontSize: 16)),
+                            color: c,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ]),
+                const SizedBox(height: 12),
+                _peekRow(
+                  d == null
+                      ? Icons.visibility_off_outlined
+                      : detectionIcon(d.type),
+                  'Last detection',
+                  d == null ? 'Nothing yet' : '${d.label} · ${ago(d.time)}',
+                ),
+                _peekRow(
+                  Icons.favorite_border,
+                  'Last heartbeat',
+                  live.lastSeen.year < 2000 ? '—' : ago(live.lastSeen),
+                ),
+                _peekRow(
+                  Icons.place_outlined,
+                  'Location',
+                  '${live.lat.toStringAsFixed(4)}, ${live.lon.toStringAsFixed(4)}',
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      openWatcherDetails(context, live);
+                    },
+                    icon: const Icon(Icons.open_in_new),
+                    label: const Text(
+                      'More details · snapshot & history',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -507,20 +553,27 @@ void openWatcher(BuildContext context, Watcher w) {
 }
 
 Widget _peekRow(IconData i, String k, String v) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(children: [
-        Icon(i, size: 22, color: Colors.black54),
-        const SizedBox(width: 10),
-        SizedBox(
-            width: 120,
-            child: Text(k,
-                style: const TextStyle(color: Colors.black54, fontSize: 15))),
-        Expanded(
-            child: Text(v,
-                style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600))),
-      ]),
-    );
+  padding: const EdgeInsets.symmetric(vertical: 5),
+  child: Row(
+    children: [
+      Icon(i, size: 22, color: Colors.black54),
+      const SizedBox(width: 10),
+      SizedBox(
+        width: 120,
+        child: Text(
+          k,
+          style: const TextStyle(color: Colors.black54, fontSize: 15),
+        ),
+      ),
+      Expanded(
+        child: Text(
+          v,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+    ],
+  ),
+);
 
 // ───────────────────────────── MAP ─────────────────────────────
 
