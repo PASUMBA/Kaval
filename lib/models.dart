@@ -120,11 +120,15 @@ class Watcher {
       }
     }
     final hist = j['history'];
-    if (hist is List && history.isEmpty) {
-      history = hist
-          .whereType<Map<String, dynamic>>()
-          .map((e) => Detection.fromJson(e, base))
-          .toList();
+    if (hist is List) {
+      for (final e in hist.whereType<Map<String, dynamic>>()) {
+        final d = Detection.fromJson(e, base);
+        if (!history.any((h) => h.time == d.time && h.type == d.type)) {
+          history.add(d);
+        }
+      }
+      history.sort((a, b) => b.time.compareTo(a.time));
+      if (history.length > 50) history.removeRange(50, history.length);
     }
     final alertActive = j['alert'] == true;
     status = (alertActive || issue.isNotEmpty || battery < 15)

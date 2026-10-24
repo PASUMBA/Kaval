@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
@@ -1544,15 +1544,24 @@ class _SnapshotState extends State<_Snapshot> {
     final u = widget.url;
     if (isRelayUrl(u)) {
       final clean = u.split('?').first;
-      return FutureBuilder<Uint8List?>(
+      return FutureBuilder<String?>(
         future: _fetchRelay(clean),
-        builder: (_, snap) => snap.data == null
-            ? widget.placeholder
-            : Image.memory(
-                snap.data!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => widget.placeholder,
-              ),
+        builder: (_, snap) {
+          final b64 = snap.data;
+          if (b64 == null) return widget.placeholder;
+          if (kIsWeb) {
+            // Browser decodes the JPEG itself (canvaskit choked on camera JPEGs).
+            return Image.network(
+              'data:image/jpeg;base64,$b64',
+              fit: BoxFit.cover,
+              webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+              errorBuilder: (_, __, ___) => widget.placeholder,
+            );
+          }
+          return Image.memory(base64Decode(b64),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => widget.placeholder);
+        },
       );
     }
     return Image.network(
@@ -1563,21 +1572,22 @@ class _SnapshotState extends State<_Snapshot> {
     );
   }
 
-  static Future<Uint8List?> _fetchRelay(String url) async {
-    try {
-      final r = await http
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 15));
-      if (r.statusCode != 200) return null;
-      final v = jsonDecode(r.body);
-      if (v is! String || v.isEmpty) return null;
-      return base64Decode(
-        v.replaceFirst(RegExp(r'^data:image/\w+;base64,'), ''),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
+  static final Map<String, Future<String?>> _cache = {};
+
+  static Future<String?> _fetchRelay(String url) =>
+      _cache.putIfAbsent(url, () async {
+        try {
+          final r = await http
+              .get(Uri.parse(url))
+              .timeout(const Duration(seconds: 15));
+          if (r.statusCode != 200) return null;
+          final v = jsonDecode(r.body);
+          if (v is! String || v.isEmpty) return null;
+          return v.replaceFirst(RegExp(r'^data:image/\w+;base64,'), '');
+        } catch (_) {
+          return null;
+        }
+      });
 
   @override
   Widget build(BuildContext context) => _img;
