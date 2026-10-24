@@ -172,6 +172,15 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Card(
+                  margin: EdgeInsets.zero,
+                  color: kForest,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: KavalLogo(size: 40),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Builder(
                   builder: (ctx) => Card(
                     margin: EdgeInsets.zero,
@@ -1098,16 +1107,20 @@ class WatcherDetailScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 6),
-          for (final h in w.history.take(20))
-            ListTile(
-              dense: true,
-              leading: Icon(
-                detectionIcon(h.type),
-                color: h.isThreat ? kAlert : kOffline,
-              ),
-              title: Text(h.label),
-              subtitle: Text(
-                '${DateFormat('d MMM HH:mm:ss').format(h.time)} · ${(h.confidence * 100).round()}% · ${h.source}',
+          for (final (i, h) in w.history.take(10).indexed)
+            Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: _historyThumb(context, h, i),
+                title: Text(h.label),
+                subtitle: Text(
+                  '${DateFormat('d MMM HH:mm:ss').format(h.time)} · ${(h.confidence * 100).round()}% · ${h.source}',
+                ),
+                trailing: Icon(detectionIcon(h.type),
+                    color: h.isThreat ? kAlert : kOffline),
+                onTap: h.snapshotUrl == null
+                    ? null
+                    : () => _showSnapshot(context, h),
               ),
             ),
           if (w.isDemo && w.status != WatcherStatus.offline) ...[
@@ -1152,6 +1165,58 @@ class WatcherDetailScreen extends StatelessWidget {
       ),
     ),
   );
+
+  /// Thumbnail for a history row. Relay URLs are per-detection photos; a local
+  /// camera only has the latest frame, so show it for the newest row only.
+  Widget _historyThumb(BuildContext context, Detection h, int i) {
+    final u = h.snapshotUrl;
+    final has = u != null && (isRelayUrl(u) || i == 0);
+    return SizedBox(
+      width: 72,
+      height: 48,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: has
+            ? _Snapshot(
+                key: ValueKey('thumb-$u'),
+                url: u,
+                placeholder: Container(
+                    color: const Color(0xFF1F2A24),
+                    child: Icon(detectionIcon(h.type),
+                        color: Colors.white38, size: 22)),
+              )
+            : Container(
+                color: const Color(0xFFE8EEEA),
+                child: Icon(detectionIcon(h.type),
+                    color: Colors.black38, size: 22)),
+      ),
+    );
+  }
+
+  void _showSnapshot(BuildContext context, Detection h) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        clipBehavior: Clip.antiAlias,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: _Snapshot(
+              key: ValueKey('big-${h.snapshotUrl}'),
+              url: h.snapshotUrl!,
+              placeholder: _snapPlaceholder(h),
+            ),
+          ),
+          ListTile(
+            leading: Icon(detectionIcon(h.type), color: kAlert),
+            title: Text(h.label),
+            subtitle: Text(
+                '${DateFormat('d MMM yyyy HH:mm:ss').format(h.time)} · ${(h.confidence * 100).round()}% · ${h.source}'),
+          ),
+        ]),
+      ),
+    );
+  }
 
   Widget _kv(String k, String v, {Widget? trailing}) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
