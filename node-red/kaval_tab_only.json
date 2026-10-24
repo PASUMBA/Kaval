@@ -1,0 +1,431 @@
+[
+ {
+  "id": "kv_tab",
+  "type": "tab",
+  "label": "Kaval Watcher",
+  "disabled": false,
+  "info": "Kaval AI forest watch post. Model node on the Dashboard tab is wired into kv_detect.",
+  "env": [
+   {
+    "name": "KV_ID",
+    "value": "KDN-01",
+    "type": "str"
+   },
+   {
+    "name": "KV_NAME",
+    "value": "Vadakkumbhagam Post",
+    "type": "str"
+   },
+   {
+    "name": "KV_BATTERY",
+    "value": "87",
+    "type": "str"
+   },
+   {
+    "name": "KV_HOLD_MS",
+    "value": "15000",
+    "type": "str"
+   },
+   {
+    "name": "KV_QUIET_FROM",
+    "value": "18",
+    "type": "str"
+   },
+   {
+    "name": "KV_QUIET_TO",
+    "value": "6",
+    "type": "str"
+   },
+   {
+    "name": "KV_PERSON_ALWAYS",
+    "value": "1",
+    "type": "str"
+   },
+   {
+    "name": "KV_AUDIO_THRESH",
+    "value": "12",
+    "type": "str"
+   },
+   {
+    "name": "GPIO_PIN",
+    "value": "490",
+    "type": "str"
+   }
+  ]
+ },
+ {
+  "id": "kv_comment",
+  "type": "comment",
+  "name": "Kaval watch post",
+  "z": "kv_tab",
+  "x": 120,
+  "y": 40,
+  "wires": [
+   []
+  ],
+  "info": "Eyes: YOLO11n (Dashboard tab model node) -> kv_detect\nEars: arecord 2s clips -> kv_audio\nAct: white LEDs via light node + GPIO490\nReport: GET /api/watcher, /api/snapshot.jpg, /api/gimbal\n\nIMPORT NOTES: 1) wire the existing 'model' node output to 'classify + gimbal target'. 2) In the model node tick Debug (needed so data.image is included -> /api/snapshot.jpg). 3) Disable other tabs that drive the LEDs (GPIO490)."
+ },
+ {
+  "id": "kv_detect",
+  "type": "function",
+  "name": "classify + gimbal target",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 120,
+  "wires": [
+   [
+    "kv_hold"
+   ]
+  ],
+  "func": "\n// Kaval watcher: classify YOLO labels into watch-post events + gimbal target\nconst THREAT={elephant:'elephant',bear:'bear',person:'person',truck:'vehicle',car:'vehicle',bus:'vehicle',motorcycle:'vehicle',cow:'cattle',dog:'dog',horse:'animal',sheep:'animal',bird:'bird'};\nconst PRIORITY=['elephant','bear','person','vehicle','cattle','animal','dog','bird'];\nconst QUIET_FROM=Number(env.get('KV_QUIET_FROM')||18), QUIET_TO=Number(env.get('KV_QUIET_TO')||6); // person = intrusion only at night\nconst data=msg.payload?.data||{};\nconst labels=Array.isArray(data.labels)?data.labels.map(String):[];\nconst boxes=Array.isArray(data.boxes)?data.boxes:[];\nconst res=Array.isArray(data.resolution)?data.resolution:[640,640];\nflow.set('kvLastLabels',labels);\nif(data.image) flow.set('kvImage',data.image);\nconst st=flow.get('kv')||{history:[],alertUntil:0,pan:90,tilt:90,tracking:false};\nlet best=null;\nfor(let i=0;i<labels.length;i++){\n  const t=THREAT[labels[i].toLowerCase()]; if(!t) continue;\n  if(!best||PRIORITY.indexOf(t)<PRIORITY.indexOf(best.type)){\n    const b=boxes[i]||[]; // [x,y,w,h,score,cls]\n    let sc=Number(b[4]??0.8); if(sc>1) sc=sc/100; best={type:t,confidence:sc,box:b};\n  }\n}\nconst h=Math.floor(((Date.now()/3600000)+Number(env.get('KV_TZ_OFFSET')||5.5))%24); // local (IST) hour\nconst night=(h>=QUIET_FROM||h<QUIET_TO);\nlet threat=false;\nif(best){\n  if(best.type==='person') threat=night||env.get('KV_PERSON_ALWAYS')==='1';\n  else threat=['elephant','bear','vehicle'].includes(best.type);\n  // gimbal: aim at box centre (box x,y are centre px in model resolution)\n  if(best.box.length>=4){\n    const cx=best.box[0]/res[0], cy=best.box[1]/res[1];\n    st.pan=Math.round(180-cx*180); st.tilt=Math.round(60+cy*60);\n  }\n  st.tracking=true; st.lastSeen=Date.now();\n  const last=st.history[0];\n  const sameRecent=last&&last.type===best.type&&(Date.now()-new Date(last.time).getTime())<20000;\n  if(!sameRecent){\n    const det={type:best.type,confidence:Math.round(best.confidence*100)/100,time:new Date().toISOString(),source:'camera',snapshot:data.image?'/api/snapshot.jpg':null};\n    st.history.unshift(det); if(st.history.length>50) st.history.pop();\n    st.last=det;\n    if(data.image) flow.set('kvSnap',data.image);\n  }\n  if(threat) st.alertUntil=Date.now()+Number(env.get('KV_HOLD_MS')||15000);\n}else{\n  if(Date.now()-(st.lastSeen||0)>5000){ st.tracking=false; st.pan=90; st.tilt=90; }\n}\nflow.set('kv',st);\nnode.status({fill:threat?'red':best?'yellow':'green',shape:'dot',text:best?best.type:'clear'});\nif(threat){ msg.payload='on'; return msg; }\nreturn null;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_hold",
+  "type": "trigger",
+  "name": "on now, off after idle",
+  "z": "kv_tab",
+  "x": 440,
+  "y": 120,
+  "wires": [
+   [
+    "kv_light",
+    "kv_gpio_cmd"
+   ]
+  ],
+  "op1": "on",
+  "op2": "off",
+  "op1type": "str",
+  "op2type": "str",
+  "duration": "5",
+  "units": "s",
+  "extend": true
+ },
+ {
+  "id": "kv_light",
+  "type": "light",
+  "name": "",
+  "z": "kv_tab",
+  "x": 680,
+  "y": 80,
+  "wires": [
+   []
+  ],
+  "light": false
+ },
+ {
+  "id": "kv_gpio_cmd",
+  "type": "function",
+  "name": "on/off -> sysfs",
+  "z": "kv_tab",
+  "x": 680,
+  "y": 160,
+  "wires": [
+   [
+    "kv_gpio_exec"
+   ]
+  ],
+  "func": "\nconst pin=String(env.get('GPIO_PIN')||'490').trim();\nconst level=msg.payload==='on'?1:0;\nconst g=`/sys/class/gpio/gpio${pin}`;\nmsg.payload=`[ -d ${g} ] || printf ${pin} > /sys/class/gpio/export; printf out > ${g}/direction; printf ${level} > ${g}/value;`;\nreturn msg;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_gpio_exec",
+  "type": "exec",
+  "name": "",
+  "z": "kv_tab",
+  "x": 900,
+  "y": 160,
+  "wires": [
+   [],
+   [],
+   []
+  ],
+  "command": "",
+  "addpay": "payload",
+  "append": "",
+  "useSpawn": "false",
+  "timer": ""
+ },
+ {
+  "id": "kv_init",
+  "type": "inject",
+  "name": "on deploy: off",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 200,
+  "wires": [
+   [
+    "kv_light",
+    "kv_gpio_cmd"
+   ]
+  ],
+  "props": [
+   {
+    "p": "payload",
+    "v": "off",
+    "vt": "str"
+   }
+  ],
+  "once": true,
+  "onceDelay": "0.5",
+  "repeat": ""
+ },
+ {
+  "id": "kv_audio_tick",
+  "type": "inject",
+  "name": "every 6s",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 320,
+  "wires": [
+   [
+    "kv_arecord"
+   ]
+  ],
+  "props": [
+   {
+    "p": "payload"
+   }
+  ],
+  "repeat": "6",
+  "once": true,
+  "onceDelay": "5",
+  "payload": "",
+  "payloadType": "date"
+ },
+ {
+  "id": "kv_arecord",
+  "type": "exec",
+  "name": "arecord 2s",
+  "z": "kv_tab",
+  "x": 420,
+  "y": 320,
+  "wires": [
+   [
+    "kv_audio_read"
+   ],
+   [],
+   []
+  ],
+  "command": "arecord -q -d 2 -f S16_LE -r 16000 -c 1 /tmp/kv.wav",
+  "addpay": "none",
+  "append": "",
+  "useSpawn": "false",
+  "timer": "4"
+ },
+ {
+  "id": "kv_audio_read",
+  "type": "file in",
+  "name": "read /tmp/kv.wav",
+  "z": "kv_tab",
+  "x": 640,
+  "y": 320,
+  "wires": [
+   [
+    "kv_audio"
+   ]
+  ],
+  "filename": "/tmp/kv.wav",
+  "filenameType": "str",
+  "format": "",
+  "chunk": false,
+  "sendError": false,
+  "encoding": "none",
+  "allProps": false
+ },
+ {
+  "id": "kv_audio",
+  "type": "function",
+  "name": "loud machine sound -> chainsaw",
+  "z": "kv_tab",
+  "x": 860,
+  "y": 320,
+  "wires": [
+   [
+    "kv_hold"
+   ]
+  ],
+  "func": "\n// payload = raw WAV buffer from arecord (2 s, 16 kHz mono S16_LE). Compute RMS level.\nif(!Buffer.isBuffer(msg.payload)||msg.payload.length<1000) return null;\nconst b=msg.payload; let sum=0,n=0;\nfor(let i=44;i+1<b.length;i+=2){ const v=b.readInt16LE(i); sum+=v*v; n++; }\nconst rms=Math.sqrt(sum/Math.max(n,1))/32768;\nconst level=Math.round(rms*1000)/10;            // 0..100\nconst TH=Number(env.get('KV_AUDIO_THRESH')||12);  // tune on site\nconst au=flow.get('kvAudio')||{streak:0};\nau.level=level; au.loud=level>TH; au.streak=au.loud?(au.streak||0)+1:0;\nflow.set('kvAudio',au);\nnode.status({fill:au.loud?'red':'green',shape:'ring',text:`audio ${level}`});\nif(au.streak===3){ // ~6 s of sustained loud machine noise\n  const st=flow.get('kv')||{history:[],alertUntil:0,pan:90,tilt:90};\n  const det={type:'chainsaw',confidence:Math.min(0.99,Math.round((level/100+0.5)*100)/100),time:new Date().toISOString(),source:'audio',snapshot:flow.get('kvImage')?'/api/snapshot.jpg':null};\n  st.history.unshift(det); if(st.history.length>50) st.history.pop();\n  st.last=det; st.alertUntil=Date.now()+Number(env.get('KV_HOLD_MS')||15000);\n  if(flow.get('kvImage')) flow.set('kvSnap',flow.get('kvImage'));\n  flow.set('kv',st);\n  msg.payload='on'; return msg;\n}\nreturn null;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_api_in",
+  "type": "http in",
+  "name": "GET /api/watcher",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 440,
+  "wires": [
+   [
+    "kv_api_fn"
+   ]
+  ],
+  "url": "/api/watcher",
+  "method": "get",
+  "upload": false,
+  "swaggerDoc": ""
+ },
+ {
+  "id": "kv_api_fn",
+  "type": "function",
+  "name": "state -> JSON",
+  "z": "kv_tab",
+  "x": 440,
+  "y": 440,
+  "wires": [
+   [
+    "kv_api_res"
+   ]
+  ],
+  "func": "\nmsg.headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'};\nconst st=flow.get('kv')||{history:[],alertUntil:0,pan:90,tilt:90,tracking:false};\nconst au=flow.get('kvAudio')||{};\nconst alert=Date.now()<(st.alertUntil||0);\nlet battery=Number(env.get('KV_BATTERY')||100);\nmsg.payload={\n  id:env.get('KV_ID')||'KDN-01',\n  name:env.get('KV_NAME')||'Vadakkumbhagam Post',\n  battery, alert,\n  issue: battery<15?'Low battery':'',\n  pan:st.pan, tilt:st.tilt, tracking:!!st.tracking,\n  last_detection: st.last||null,\n  history: st.history||[],\n  audio:{level:au.level||0, loud:!!au.loud},\n  labels: flow.get('kvLastLabels')||[],\n  uptime_s: Math.round((Date.now()-(flow.get('kvStart')||(flow.set('kvStart',Date.now()),Date.now())))/1000)\n};\nreturn msg;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_api_res",
+  "type": "http response",
+  "name": "",
+  "z": "kv_tab",
+  "x": 660,
+  "y": 440,
+  "wires": [
+   []
+  ],
+  "statusCode": "",
+  "headers": {}
+ },
+ {
+  "id": "kv_snap_in",
+  "type": "http in",
+  "name": "GET /api/snapshot.jpg",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 500,
+  "wires": [
+   [
+    "kv_snap_fn"
+   ]
+  ],
+  "url": "/api/snapshot.jpg",
+  "method": "get",
+  "upload": false,
+  "swaggerDoc": ""
+ },
+ {
+  "id": "kv_snap_fn",
+  "type": "function",
+  "name": "base64 -> jpeg",
+  "z": "kv_tab",
+  "x": 440,
+  "y": 500,
+  "wires": [
+   [
+    "kv_snap_res"
+   ]
+  ],
+  "func": "\nconst img=flow.get('kvSnap')||flow.get('kvImage');\nif(!img){ msg.statusCode=404; msg.payload='no snapshot yet'; return msg; }\nmsg.headers={'Content-Type':'image/jpeg','Cache-Control':'no-store'};\nmsg.payload=Buffer.from(String(img).replace(/^data:image\\/\\w+;base64,/,''),'base64');\nreturn msg;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_snap_res",
+  "type": "http response",
+  "name": "",
+  "z": "kv_tab",
+  "x": 660,
+  "y": 500,
+  "wires": [
+   []
+  ],
+  "statusCode": "",
+  "headers": {}
+ },
+ {
+  "id": "kv_gimbal_in",
+  "type": "http in",
+  "name": "GET /api/gimbal",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 560,
+  "wires": [
+   [
+    "kv_gimbal_fn"
+   ]
+  ],
+  "url": "/api/gimbal",
+  "method": "get",
+  "upload": false,
+  "swaggerDoc": ""
+ },
+ {
+  "id": "kv_gimbal_fn",
+  "type": "function",
+  "name": "pan,tilt",
+  "z": "kv_tab",
+  "x": 440,
+  "y": 560,
+  "wires": [
+   [
+    "kv_gimbal_res"
+   ]
+  ],
+  "func": "\nmsg.headers={'Content-Type':'text/plain','Cache-Control':'no-store'};\nconst st=flow.get('kv')||{pan:90,tilt:90};\nmsg.payload=`${st.pan},${st.tilt}`;   // ESP32 servo bridge polls this\nreturn msg;\n",
+  "outputs": 1
+ },
+ {
+  "id": "kv_gimbal_res",
+  "type": "http response",
+  "name": "",
+  "z": "kv_tab",
+  "x": 660,
+  "y": 560,
+  "wires": [
+   []
+  ],
+  "statusCode": "",
+  "headers": {}
+ },
+ {
+  "id": "kv_raw_in",
+  "type": "http in",
+  "name": "GET /api/watcher/raw",
+  "z": "kv_tab",
+  "x": 200,
+  "y": 620,
+  "wires": [
+   [
+    "kv_raw_fn"
+   ]
+  ],
+  "url": "/api/watcher/raw",
+  "method": "get",
+  "upload": false,
+  "swaggerDoc": ""
+ },
+ {
+  "id": "kv_raw_fn",
+  "type": "function",
+  "name": "debug",
+  "z": "kv_tab",
+  "x": 440,
+  "y": 620,
+  "wires": [
+   [
+    "kv_raw_res"
+   ]
+  ],
+  "func": "msg.headers={'Content-Type':'application/json'};msg.payload={labels:flow.get('kvLastLabels')||null,kv:flow.get('kv')||null,audio:flow.get('kvAudio')||null};return msg;",
+  "outputs": 1
+ },
+ {
+  "id": "kv_raw_res",
+  "type": "http response",
+  "name": "",
+  "z": "kv_tab",
+  "x": 660,
+  "y": 620,
+  "wires": [
+   []
+  ],
+  "statusCode": "",
+  "headers": {}
+ }
+]
