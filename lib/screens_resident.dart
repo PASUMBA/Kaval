@@ -109,6 +109,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const Padding(
+            padding: EdgeInsets.all(8), child: KavalLogo(size: 36)),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('KAVAL · നാട്ടുകാർ',
               style: TextStyle(letterSpacing: 2, fontSize: 16)),

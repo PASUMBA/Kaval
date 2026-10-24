@@ -266,6 +266,8 @@ class RangeSelectScreen extends StatelessWidget {
     final store = context.watch<KavalStore>();
     return Scaffold(
       appBar: AppBar(
+        leading: const Padding(
+            padding: EdgeInsets.all(8), child: KavalLogo(size: 36)),
         title: const Text('Select Forest Range'),
         actions: [
           IconButton(

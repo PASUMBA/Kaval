@@ -49,13 +49,10 @@ class KavalLogo extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.08),
-        border: Border.all(color: Colors.white24, width: 2),
-      ),
-      child: Icon(Icons.remove_red_eye_outlined,
-          color: const Color(0xFF9BE7B4), size: size * 0.55),
+      padding: EdgeInsets.all(size * 0.1),
+      decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+      child: Image.asset('assets/kerala_emblem.png',
+          fit: BoxFit.contain, semanticLabel: 'Government of Kerala'),
     );
   }
 }
