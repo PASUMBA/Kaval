@@ -185,7 +185,7 @@ class KavalStore extends ChangeNotifier {
 
   void startPolling() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) => _poll());
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _poll());
     _poll();
   }
 

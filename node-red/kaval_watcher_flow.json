@@ -2235,7 +2235,7 @@
     "kv_api_res"
    ]
   ],
-  "func": "\nmsg.headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'};\nconst st=flow.get('kv')||{history:[],alertUntil:0,pan:90,tilt:90,tracking:false};\nconst au=flow.get('kvAudio')||{};\nconst alert=Date.now()<(st.alertUntil||0);\nlet battery=Number(env.get('KV_BATTERY')||100);\nmsg.payload={\n  id:env.get('KV_ID')||'KDN-01',\n  name:env.get('KV_NAME')||'Vadakkumbhagam Post',\n  battery, alert,\n  issue: battery<15?'Low battery':'',\n  pan:st.pan, tilt:st.tilt, tracking:!!st.tracking,\n  last_detection: st.last||null,\n  history: st.history||[],\n  audio:{level:au.level||0, loud:!!au.loud},\n  labels: flow.get('kvLastLabels')||[],\n  uptime_s: Math.round((Date.now()-(flow.get('kvStart')||(flow.set('kvStart',Date.now()),Date.now())))/1000)\n};\nreturn msg;\n",
+  "func": "\nmsg.headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'};\nconst st=flow.get('kv')||{history:[],alertUntil:0,pan:90,tilt:90,tracking:false};\nconst au=flow.get('kvAudio')||{};\nconst alert=Date.now()<(st.alertUntil||0);\nlet battery=Number(env.get('KV_BATTERY')||100);\nmsg.payload={\n  id:env.get('KV_ID')||'KDN-01',\n  name:env.get('KV_NAME')||'Vadakkumbhagam Post',\n  battery, alert,\n  issue: battery<15?'Low battery':'',\n  pan:st.pan, tilt:st.tilt, tracking:!!st.tracking,\n  last_detection: st.last||null,\n  history: (st.history||[]).slice(0,10),\n  audio:{level:au.level||0, loud:!!au.loud},\n  labels: flow.get('kvLastLabels')||[],\n  uptime_s: Math.round((Date.now()-(flow.get('kvStart')||(flow.set('kvStart',Date.now()),Date.now())))/1000)\n};\nreturn msg;\n",
   "outputs": 1
  },
  {
@@ -2280,7 +2280,7 @@
     "kv_snap_res"
    ]
   ],
-  "func": "\nconst img=flow.get('kvSnap')||flow.get('kvImage');\nif(!img){ msg.statusCode=404; msg.payload='no snapshot yet'; return msg; }\nmsg.headers={'Content-Type':'image/jpeg','Cache-Control':'no-store'};\nmsg.payload=Buffer.from(String(img).replace(/^data:image\\/\\w+;base64,/,''),'base64');\nreturn msg;\n",
+  "func": "const img=flow.get('kvSnap')||flow.get('kvImage');\nif(!img){ msg.statusCode=404; msg.payload='no snapshot yet'; return msg; }\n// decode once per new snapshot, serve cached buffer afterwards\nlet c=flow.get('kvSnapBuf');\nif(!c||c.src!==img){ c={src:img,buf:Buffer.from(String(img).replace(/^data:image\\/\\w+;base64,/,''),'base64')}; flow.set('kvSnapBuf',c); }\nmsg.headers={'Content-Type':'image/jpeg','Cache-Control':'private, max-age=60'};\nmsg.payload=c.buf; return msg;",
   "outputs": 1
  },
  {

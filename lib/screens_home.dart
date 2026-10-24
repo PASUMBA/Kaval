@@ -496,11 +496,12 @@ class WatcherDetailScreen extends StatelessWidget {
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: d.snapshotUrl != null
-                    ? Image.network(
-                        '${d.snapshotUrl}?t=${d.time.millisecondsSinceEpoch ~/ 60000}',
-                        fit: BoxFit.cover,
-                        webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
-                        errorBuilder: (_, __, ___) => _snapPlaceholder(d),
+                    ? _Snapshot(
+                        key: ValueKey(
+                            '${d.snapshotUrl}?t=${d.time.millisecondsSinceEpoch ~/ 60000}'),
+                        url:
+                            '${d.snapshotUrl}?t=${d.time.millisecondsSinceEpoch ~/ 60000}',
+                        placeholder: _snapPlaceholder(d),
                       )
                     : _snapPlaceholder(d),
               ),
@@ -703,4 +704,25 @@ class _SettingsTabState extends State<SettingsTab> {
       ),
     ]);
   }
+}
+
+/// Fetches the snapshot once per URL; parent rebuilds (every poll) must not
+/// re-request the image from the camera.
+class _Snapshot extends StatefulWidget {
+  const _Snapshot({super.key, required this.url, required this.placeholder});
+  final String url;
+  final Widget placeholder;
+  @override
+  State<_Snapshot> createState() => _SnapshotState();
+}
+
+class _SnapshotState extends State<_Snapshot> {
+  late final Widget _img = Image.network(
+    widget.url,
+    fit: BoxFit.cover,
+    webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+    errorBuilder: (_, __, ___) => widget.placeholder,
+  );
+  @override
+  Widget build(BuildContext context) => _img;
 }
