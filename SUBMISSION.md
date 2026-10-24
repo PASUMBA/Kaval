@@ -5,7 +5,7 @@
 - **Project name:** Kaval (കാവൽ)
 - **Short description:** Forest watchers in Kerala guard watch posts all night against elephants entering villages (Kottappady, Kodanad Range) and sandalwood cutters (Marayoor). Kaval is an AI watch post built on a Seeed reCamera (on-device YOLO + microphone loudness rule, no internet needed) pushing to a Firebase relay, plus a Flutter app: Officer mode (map of posts, red pin + alert with sound, snapshot, photo history, Excel export of detections, resident reports) and Resident mode (elephant alert for the nearest post, bee-sound deterrent, one-tap sighting report). Benefits Kerala Forest Department field staff and fringe-village residents.
 - **Code repository URL:** https://github.com/PASUMBA/Kaval
-- **Final submitted implementation commit SHA:** TODO — fill in after the last code commit (`git rev-parse HEAD`)
+- **Final submitted implementation commit SHA:** `9f242cfd5cdafebacf29d647ff51d0f9bde18f98` (`main` after PR #1 merged; app v1.0.10+17)
 - **Working demo URL or local demo steps:** Install the APK built from this repo (or run `flutter run`), log in, choose Kodanad Range, tap post KDN-01. With the reCamera connected (Settings → Live camera → Firebase relay URL or camera URL), stand in front of the camera → pin turns red and an alert appears. Without hardware, Demo mode shows simulated posts and "Demo triggers".
 - **Demo access requirements:** Android phone (arm64) or Chrome for the web build; optional Seeed reCamera running `node-red/kaval_watcher_flow.json`. Internet needed for map tiles, login and the Firebase relay. Officer login needs an account in the database (TODO: Madhav to share a demo officer ID + password with the judges); residents self-register in the app.
 
@@ -37,7 +37,7 @@
 - [x] README setup and demo instructions match the submitted code.
 - [x] Actual checks and known limitations are documented.
 - [x] Meaningful changes are documented and committed throughout development.
-- [ ] The final implementation is committed and pushed, and its SHA is recorded above.
+- [x] The final implementation is committed and pushed, and its SHA is recorded above.
 - [x] No credentials or private data are included in the repository or demo instructions.
 - [ ] The organizers' announced submission method and timing have been followed.
 
