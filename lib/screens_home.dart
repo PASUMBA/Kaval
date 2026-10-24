@@ -176,21 +176,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          Card(
+      body: Stack(children: [
+        const MapTab(showStats: false),
+        Positioned(
+          left: 12,
+          right: 12,
+          top: 12,
+          child: Card(
             color: banner,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(children: [
                 Icon(
                     alerts.isNotEmpty
                         ? Icons.warning_amber_rounded
                         : Icons.verified_user_outlined,
                     color: Colors.white,
-                    size: 40),
-                const SizedBox(width: 14),
+                    size: 32),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,38 +201,63 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(headline,
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 24,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1)),
-                        const SizedBox(height: 4),
                         Text(sub,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                color: Colors.white, fontSize: 13)),
+                                color: Colors.white, fontSize: 12)),
                       ]),
                 ),
               ]),
             ),
           ),
-          if (newReports > 0)
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.campaign_outlined, color: kForest),
-                title: Text('$newReports resident report${newReports > 1 ? 's' : ''}'),
-                subtitle: Text(
-                    '${store.reports.first.reporter}: ${store.reports.first.type} · ${ago(store.reports.first.time)}'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _open(const NotificationsTab(), 'Alerts & reports'),
-              ),
+        ),
+        DraggableScrollableSheet(
+          initialChildSize: 0.22,
+          minChildSize: 0.12,
+          maxChildSize: 0.85,
+          snap: true,
+          builder: (_, ctl) => Material(
+            elevation: 12,
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(18)),
+            child: ListView(
+              controller: ctl,
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                Row(children: [
+                  Text('Posts (${ws.length})',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  if (newReports > 0)
+                    TextButton.icon(
+                      onPressed: () =>
+                          _open(const NotificationsTab(), 'Alerts & reports'),
+                      icon: const Icon(Icons.campaign_outlined, size: 18),
+                      label: Text('$newReports report${newReports > 1 ? 's' : ''}'),
+                    ),
+                ]),
+                const SizedBox(height: 6),
+                for (final w in ws) WatcherCard(w: w),
+              ],
             ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-            child: Text('Posts (${ws.length})',
-                style: Theme.of(context).textTheme.titleMedium),
           ),
-          for (final w in ws) WatcherCard(w: w),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 }
@@ -243,7 +271,8 @@ void openWatcher(BuildContext context, Watcher w) {
 // ───────────────────────────── MAP ─────────────────────────────
 
 class MapTab extends StatelessWidget {
-  const MapTab({super.key});
+  const MapTab({super.key, this.showStats = true});
+  final bool showStats;
   @override
   Widget build(BuildContext context) {
     final store = context.watch<KavalStore>();
@@ -283,7 +312,7 @@ class MapTab extends StatelessWidget {
           ),
         ],
       ),
-      Positioned(
+      if (showStats) Positioned(
         left: 12,
         right: 12,
         top: 12,
