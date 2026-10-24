@@ -183,6 +183,8 @@ class SightingReport {
   final String type;
   final String note;
   final DateTime time;
+  /// Base64 JPEG attached by the resident (optional).
+  final String photo;
   SightingReport({
     this.id = '',
     required this.reporter,
@@ -191,6 +193,7 @@ class SightingReport {
     required this.type,
     required this.note,
     required this.time,
+    this.photo = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -200,6 +203,7 @@ class SightingReport {
         'type': type,
         'note': note,
         'time': time.toUtc().toIso8601String(),
+        if (photo.isNotEmpty) 'photo': photo,
       };
 
   factory SightingReport.fromJson(String id, Map<String, dynamic> j) =>
@@ -212,5 +216,6 @@ class SightingReport {
         note: (j['note'] ?? '').toString(),
         time: DateTime.tryParse(j['time']?.toString() ?? '')?.toLocal() ??
             DateTime.now(),
+        photo: (j['photo'] ?? '').toString(),
       );
 }

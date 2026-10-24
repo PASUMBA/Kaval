@@ -141,7 +141,7 @@ class KavalStore extends ChangeNotifier {
     return d;
   }
 
-  void reportSighting(String type, String note) {
+  void reportSighting(String type, String note, {String photo = ''}) {
     final w = homePost;
     if (w == null) return;
     final r = SightingReport(
@@ -151,6 +151,7 @@ class KavalStore extends ChangeNotifier {
       type: type,
       note: note.trim(),
       time: DateTime.now(),
+      photo: photo,
     );
     reports.insert(0, r);
     reportError = '';

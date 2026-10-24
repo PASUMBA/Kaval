@@ -1314,12 +1314,46 @@ class NotificationsTab extends StatelessWidget {
           return Card(
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: (r.type == 'elephant' || r.type == 'bear')
-                    ? kAlert
-                    : kForest,
-                child: Icon(detectionIcon(r.type), color: Colors.white),
-              ),
+              leading: r.photo.isNotEmpty
+                  ? GestureDetector(
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.memory(
+                                base64Decode(r.photo),
+                                fit: BoxFit.contain,
+                              ),
+                              ListTile(
+                                title: Text('${r.type} · ${r.reporter}'),
+                                subtitle: Text(
+                                  '${r.note}\n${DateFormat('d MMM HH:mm').format(r.time)}',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.memory(
+                          base64Decode(r.photo),
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
+                  : CircleAvatar(
+                      backgroundColor:
+                          (r.type == 'elephant' || r.type == 'bear')
+                          ? kAlert
+                          : kForest,
+                      child: Icon(detectionIcon(r.type), color: Colors.white),
+                    ),
               title: Text(
                 '${r.type[0].toUpperCase()}${r.type.substring(1)} · ${w?.name ?? r.watcherId}',
               ),
