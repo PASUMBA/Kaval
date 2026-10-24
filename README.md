@@ -18,8 +18,8 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 | Camera HTTP API: `GET /api/watcher` (JSON), `GET /api/snapshot.jpg`, `GET /api/gimbal`, `GET /api/watcher/raw`, `GET /api/net` (camera IP, for hotspot setup), `GET /api/relay` | Working, tested live |
 | Cloud relay: every 3 s the camera `PUT`s its state to Firebase RTDB `posts/<id>`, the snapshot to `snaps/<id>` when it changes, a per-detection photo to `snaphist/<id>/…`, and appends detections to `events/<id>` | Working, tested live |
 | Audio: 2 s `arecord` sample every 6 s, RMS loudness, 3 loud samples → "chainsaw" event | Working (loudness rule, **not** a trained classifier) |
-| Officer app: login (officer ID + password checked against `users/` in the database) → Range select → full-screen map with status card (posts / alerts / offline) and pins (green ok / red alert / grey offline, "Connecting…" until first reply) → tap pin = quick-peek card → detail page (battery, last detection, snapshot, history with per-detection photo thumbnails) → Posts tab → Alerts tab with sound + resident reports → drawer (Excel export, Settings, Change range, Sign out) | Working on Android (APK v1.0.9) and web build |
-| Resident mode: sign-up with name / phone / password / nearest post → one big status for that post → elephant/bear alert banner → bee-sound deterrent (starts automatically on elephant/bear, manual button) → "Report a sighting" sent to the officers | Working |
+| Officer app: login (officer ID + password checked against `users/` in the database) → Range select → full-screen map with status card (posts / alerts / offline) and pins (green ok / red alert / grey offline, "Connecting…" until first reply) → tap pin = quick-peek card → detail page (battery, last detection, snapshot, history with per-detection photo thumbnails) → Posts tab → Alerts tab with sound + resident reports → drawer (Excel export, Settings, Change range, Sign out) | Working on Android (APK v1.0.10) and web build |
+| Resident mode: sign-up with name / phone / password / nearest post → one big status for that post → elephant/bear alert banner → bee-sound deterrent (starts automatically on elephant/bear, manual button) → "Report a sighting" with optional photo (camera or gallery, resized to 1024 px, stored base64 with the report) → officers see it in the Alerts tab with a thumbnail (tap to enlarge) | Working |
 | Excel export (`.xlsx`): Posts, Reports and one sheet per post with its detection log from `events/<id>`; Today / 7 d / 30 d / custom / all | Working (download on web, share sheet on Android) |
 | App polls each live post every 3 s (camera URL or relay URL), 8 s timeout; relay post marked offline if the camera stopped pushing for 40 s; snapshot fetched once per new detection | Working |
 | Demo mode: 20 simulated posts across 5 ranges so the "network of posts" can be shown with one real camera | Working |
@@ -56,9 +56,11 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
   - Only KDN-01 is a real camera; the other 20 posts are simulated.
   - Detection model is the stock `yolo11n` (COCO classes), not trained on Kerala wildlife; audio detection is a loudness threshold, not a chainsaw model.
   - Camera LED alert output (GPIO490) is disabled by default — it browned out the USB-powered camera.
+  - The Government of Kerala emblem in the app is a demo mock-up for a Forest Department audience; the app is not an official or endorsed product.
+  - Report photos are stored as base64 in the database (fine for a demo, not for scale).
   - Not built (future work): servo gimbal tracking (`firmware/esp32-gimbal-bridge/` sketch exists but was never wired or tested), LoRa backhaul between posts, physical deterrent at the post, multiple real cameras.
 - **Libraries, APIs, and public datasets used:**
-  - Flutter packages: [flutter_map](https://pub.dev/packages/flutter_map), [latlong2](https://pub.dev/packages/latlong2), [http](https://pub.dev/packages/http), [provider](https://pub.dev/packages/provider), [audioplayers](https://pub.dev/packages/audioplayers), [shared_preferences](https://pub.dev/packages/shared_preferences), [intl](https://pub.dev/packages/intl), [excel](https://pub.dev/packages/excel), [share_plus](https://pub.dev/packages/share_plus), [path_provider](https://pub.dev/packages/path_provider), [crypto](https://pub.dev/packages/crypto), [web](https://pub.dev/packages/web)
+  - Flutter packages: [flutter_map](https://pub.dev/packages/flutter_map), [latlong2](https://pub.dev/packages/latlong2), [http](https://pub.dev/packages/http), [provider](https://pub.dev/packages/provider), [audioplayers](https://pub.dev/packages/audioplayers), [shared_preferences](https://pub.dev/packages/shared_preferences), [intl](https://pub.dev/packages/intl), [excel](https://pub.dev/packages/excel), [share_plus](https://pub.dev/packages/share_plus), [path_provider](https://pub.dev/packages/path_provider), [crypto](https://pub.dev/packages/crypto), [web](https://pub.dev/packages/web), [image_picker](https://pub.dev/packages/image_picker)
   - Map tiles: [OpenTopoMap](https://opentopomap.org/about) (© OpenStreetMap contributors, SRTM; style CC-BY-SA)
   - Backend: [Firebase Realtime Database](https://firebase.google.com/docs/database) REST API (free tier)
   - Detection model: stock `yolo11n` (COCO classes) shipped with the Seeed reCamera, run through [Node-RED](https://nodered.org/) on the camera
@@ -67,8 +69,8 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 ## Repository layout
 
 ```
-lib/                      Flutter app (main, models, store, backend, export, screens_auth, screens_home, screens_resident, theme)
-assets/alert.wav, bee.wav alert sound, bee deterrent sound
+lib/                      Flutter app (main, models, store, backend, export, pick_*/download_* web helpers, screens_auth, screens_home, screens_resident, theme)
+assets/                   alert.wav, bee.wav (bee deterrent), kerala_emblem.png
 node-red/                 reCamera Node-RED flows (kaval_watcher_flow.json = import this; deployed_* = backups of what ran on the camera)
 tools/                    small Python scripts that patch the relay push / snapshot history nodes into a flow JSON
 firmware/esp32-gimbal-bridge/   ESP32 servo/relay sketch — written, NOT used in the demo

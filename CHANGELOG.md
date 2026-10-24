@@ -4,6 +4,27 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T04:20:00+05:30 — Docs updated for v1.0.10
+
+- Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
+- Why: Document report photos, emblem branding and web fixes; note the emblem and base64-photo limitations.
+- Validation: Checked against `lib/screens_resident.dart`, `lib/models.dart`, `pubspec.yaml` (1.0.10+17), `AndroidManifest.xml`.
+- Limitations: Documentation only.
+
+## 2026-10-25T04:07:00+05:30 → 04:16 — v1.0.10: photo on resident reports
+
+- Changed: `lib/screens_resident.dart`, `lib/models.dart` (`SightingReport.photo`), `lib/store.dart`, `lib/pick_web.dart` / `pick_stub.dart`, `lib/screens_home.dart` (thumbnail + enlarge), `pubspec.yaml` (`image_picker`, 1.0.10+17), `AndroidManifest.xml` (CAMERA permission).
+- Why: A sighting report is far more useful to the officer with a photo. Camera or gallery, resized to 1024 px, stored base64 with the report. On web `image_picker` did not fire, so a native `<input type=file>` is used instead.
+- Validation: Report with photo sent from the web build and shown in the officer Alerts tab.
+- Limitations: Photos as base64 in the database; no size cap beyond the 1024 px resize.
+
+## 2026-10-25T03:44:00+05:30 → 03:57 — Branding and web rendering fixes
+
+- Changed: `lib/theme.dart`, `lib/screens_auth.dart`, `lib/screens_home.dart`, `assets/kerala_emblem.png`, `lib/models.dart`.
+- Why: Map header rearranged (menu left, status centre, logo right); Government of Kerala emblem as app logo with leaf backdrops on login and drawer. Relay snapshots rendered as data-URI images (CanvasKit showed blank); relay history merged instead of replaced so thumbnails are not lost.
+- Validation: Web build and APK checked after each change.
+- Limitations: Emblem is demo branding only.
+
 ## 2026-10-25T03:50:00+05:30 — Docs updated for v1.0.7–v1.0.9
 
 - Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
