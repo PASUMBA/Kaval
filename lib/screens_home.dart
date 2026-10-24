@@ -333,7 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   store.clearRange();
                 },
               ),
-              const Spacer(),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.logout, color: kAlert),
