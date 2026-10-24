@@ -5,7 +5,9 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
+import 'pick_stub.dart' if (dart.library.js_interop) 'pick_web.dart';
 import 'package:provider/provider.dart';
 
 import 'models.dart';
@@ -379,6 +381,11 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       void Function(void Function()) setSheet,
     ) async {
       try {
+        if (kIsWeb) {
+          final b = await pickImageWeb(camera: src == ImageSource.camera);
+          if (b != null) setSheet(() => photo = b);
+          return;
+        }
         final x = await ImagePicker().pickImage(
           source: src,
           maxWidth: 1024,
@@ -387,7 +394,9 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
         if (x == null) return;
         final b = await x.readAsBytes();
         setSheet(() => photo = b);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('pick failed: $e');
+      }
     }
 
     final sent = await showModalBottomSheet<bool>(
