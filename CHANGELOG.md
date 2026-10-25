@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T06:50:00+05:30 — Final SHA and AI usage updated
+
+- Changed: `SUBMISSION.md` final SHA → `5bded4e` (last code commit); `AI_USAGE.md` row for the docs session.
+- Why: Keep the submission record accurate after the firmware commit.
+- Validation: SHA checked with `git log`.
+- Limitations: None identified in these checks.
+
 ## 2026-10-25T06:40:00+05:30 — LoRa TX/RX sketches added
 
 - Changed: `firmware/lora-transmitter/lora-transmitter.ino` (XIAO + RYLR998, sends 'H' while alert pin HIGH), `firmware/lora-receiver/lora-receiver.ino` (Nano + RYLR998, LED + buzzer); README/SUBMISSION updated (LoRa link tested live, sketches listed).
