@@ -24,6 +24,14 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 | App polls each live post every 3 s (camera URL or relay URL), 8 s timeout; relay post marked offline if the camera stopped pushing for 40 s; snapshot fetched once per new detection | Working |
 | Demo mode: 20 simulated posts across 5 ranges so the "network of posts" can be shown with one real camera | Working |
 
+### Hardware node (as built at the event)
+
+| | | |
+| --- | --- | --- |
+| ![Kaval node held up at the venue](docs/images/node_handheld.jpg) | ![Kaval node top view](docs/images/node_top.jpg) | ![Kaval node wiring close-up](docs/images/node_wiring.jpg) |
+
+One prototype post (KDN-01) on a perfboard: Seeed reCamera (the AI watcher, running the Node-RED flow in `node-red/`), a Seeed XIAO board wired beside it, a 2-pin screw terminal for power, and an external antenna on an SMA pigtail. Everything is USB-powered in the demo.
+
 ### Run the project
 
 1. **Prerequisites and versions:** Flutter 3.x with Dart SDK ≥ 3.9.2, Android SDK (for the APK). For the real post: one Seeed reCamera with Node-RED (port 1880) and the stock `yolo11n` model. Internet on both camera and phone for the relay mode.

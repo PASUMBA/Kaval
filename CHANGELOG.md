@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T05:35:00+05:30 — Node photos added to README
+
+- Changed: `docs/images/node_*.jpg` (3 photos of the built KDN-01 node), new "Hardware node" section in `README.md`.
+- Why: Show judges the physical prototype that was built at the event.
+- Validation: Images open and render in the README; links checked.
+- Limitations: Photos only; no code change.
+
 ## 2026-10-25T04:20:00+05:30 — Docs updated for v1.0.10
 
 - Changed: `README.md`, `SUBMISSION.md`, `CHANGELOG.md`, `AI_USAGE.md`.
