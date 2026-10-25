@@ -24,13 +24,23 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 | App polls each live post every 3 s (camera URL or relay URL), 8 s timeout; relay post marked offline if the camera stopped pushing for 40 s; snapshot fetched once per new detection | Working |
 | Demo mode: 20 simulated posts across 5 ranges so the "network of posts" can be shown with one real camera | Working |
 
-### Hardware node (as built at the event)
+### Hardware (as built at the event)
+
+**Camera node — post KDN-01**
 
 | | | |
 | --- | --- | --- |
 | ![Kaval node held up at the venue](docs/images/node_handheld.jpg) | ![Kaval node top view](docs/images/node_top.jpg) | ![Kaval node wiring close-up](docs/images/node_wiring.jpg) |
 
-One prototype post (KDN-01) on a perfboard: Seeed reCamera (the AI watcher, running the Node-RED flow in `node-red/`), a Seeed XIAO board wired beside it, a 2-pin screw terminal for power, and an external antenna on an SMA pigtail. Everything is USB-powered in the demo.
+One prototype post on a perfboard: Seeed reCamera (the AI watcher, running the Node-RED flow in `node-red/`), a Seeed XIAO board with an RYLR998 LoRa module (coil antenna) that sends the alert over LoRa, a 2-pin screw terminal for power, and an external antenna on an SMA pigtail. USB-powered in the demo.
+
+**LoRa receiver — alert at the watch post / village**
+
+| | |
+| --- | --- |
+| ![LoRa receiver top view](docs/images/receiver_top.jpg) | ![LoRa receiver in hand](docs/images/receiver_handheld.jpg) |
+
+Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. When the camera node sends an alert over LoRa, the LED lights and the buzzer sounds — a local warning that needs no internet or phone. (LoRa TX/RX sketches are not in this repo yet.)
 
 ### Run the project
 
@@ -66,7 +76,8 @@ One prototype post (KDN-01) on a perfboard: Seeed reCamera (the AI watcher, runn
   - Camera LED alert output (GPIO490) is disabled by default — it browned out the USB-powered camera.
   - The Government of Kerala emblem in the app is a demo mock-up for a Forest Department audience; the app is not an official or endorsed product.
   - Report photos are stored as base64 in the database (fine for a demo, not for scale).
-  - Not built (future work): servo gimbal tracking (`firmware/esp32-gimbal-bridge/` sketch exists but was never wired or tested), LoRa backhaul between posts, physical deterrent at the post, multiple real cameras.
+  - LoRa link: one camera node → one receiver (LED + buzzer) was built and shown at the event; the LoRa TX/RX sketches are not yet committed here.
+  - Not built (future work): servo gimbal tracking (`firmware/esp32-gimbal-bridge/` sketch exists but was never wired or tested), multi-hop LoRa between posts, physical deterrent at the post, multiple real cameras.
 - **Libraries, APIs, and public datasets used:**
   - Flutter packages: [flutter_map](https://pub.dev/packages/flutter_map), [latlong2](https://pub.dev/packages/latlong2), [http](https://pub.dev/packages/http), [provider](https://pub.dev/packages/provider), [audioplayers](https://pub.dev/packages/audioplayers), [shared_preferences](https://pub.dev/packages/shared_preferences), [intl](https://pub.dev/packages/intl), [excel](https://pub.dev/packages/excel), [share_plus](https://pub.dev/packages/share_plus), [path_provider](https://pub.dev/packages/path_provider), [crypto](https://pub.dev/packages/crypto), [web](https://pub.dev/packages/web), [image_picker](https://pub.dev/packages/image_picker)
   - Map tiles: [OpenTopoMap](https://opentopomap.org/about) (© OpenStreetMap contributors, SRTM; style CC-BY-SA)
