@@ -92,6 +92,18 @@ Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. Wh
   - Detection model: stock `yolo11n` (COCO classes) shipped with the Seeed reCamera, run through [Node-RED](https://nodered.org/) on the camera
   - Post locations are approximate public coordinates of Kerala forest ranges, entered by hand
 
+## How Devin was used — a software engineer turned hardware engineer
+
+Devin is usually thought of as a software engineer. For Kaval it was used as the hardware engineer too, and **not a single line of code in this repo was written by hand** — all of it (Flutter app, Node-RED flow, firmware, docs) was written by Devin, directed by Madhav.
+
+The trick was to make the hardware reachable from Devin's machine:
+
+- The reCamera's Node-RED editor (port 1880) was exposed over a **Cloudflare quick tunnel** from Madhav's laptop, so Devin could read and deploy the flow on the real camera directly through the Node-RED admin API and check `/api/watcher` live.
+- The microcontroller sketches were pushed through **online code editors / Devin Desktop**, so flashing and testing on the bench stayed a copy-paste step for Madhav while the code and fixes came from Devin.
+- Everything else (APK builds, Firebase relay, docs) ran on Devin's own machine.
+
+In Madhav's words: *"I was creating a playground, dragging the software and hardware platforms into it, and letting Devin play on it."* Madhav's role was the problem (from the Forest Department), the product decisions, wiring the boards, holding the phone and the camera, and testing. With Devin Desktop this hardware loop can itself be automated further.
+
 ## Repository layout
 
 ```

@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T07:05:00+05:30 — "How Devin was used" section
+
+- Changed: `README.md` new section on Devin as hardware engineer (Node-RED over Cloudflare tunnel, online editors / Devin Desktop, playground framing, no hand-written code); `AI_USAGE.md` note.
+- Why: Record the working method, which is part of the project's story.
+- Validation: Re-read; consistent with AI_USAGE rows.
+- Limitations: None identified in these checks.
+
 ## 2026-10-25T06:50:00+05:30 — Final SHA and AI usage updated
 
 - Changed: `SUBMISSION.md` final SHA → `5bded4e` (last code commit); `AI_USAGE.md` row for the docs session.

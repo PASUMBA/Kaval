@@ -23,6 +23,7 @@ Short, honest record of AI assistance on this project. The organizer template as
 
 ## Notes
 
+- **Devin as hardware engineer:** the reCamera's Node-RED was exposed over a Cloudflare quick tunnel so Devin deployed and debugged the flow on the real camera itself; firmware reached the boards via online editors / Devin Desktop. Madhav wrote no code by hand — he set up the "playground" (hardware, tunnel, accounts, phone) and directed; Devin wrote all code in this repo.
 - No AI usage is claimed beyond the rows above. Problem choice, product framing, hardware setup, phone testing and all decisions were Madhav's.
 - No secrets, QR codes or private participant data were given to the agent or committed.
 
