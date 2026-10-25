@@ -8,7 +8,7 @@
 - **Problem origin:** suggested to Madhav by Kerala Forest Department staff during Fauna Flash field testing — not a made-up problem statement.
 - **Code repository URL:** https://github.com/PASUMBA/Kaval
 - **Final submitted implementation commit SHA:** `e6668b1` (`main`; app v1.0.10+17 + LoRa TX/RX sketches + Posts/Alerts list padding fix) — later commits are documentation only
-- **Working demo URL or local demo steps:** Install the APK built from this repo (or run `flutter run`), log in, choose Kodanad Range, tap post KDN-01. With the reCamera connected (Settings → Live camera → Firebase relay URL or camera URL), stand in front of the camera → pin turns red and an alert appears. Without hardware, Demo mode shows simulated posts and "Demo triggers".
+- **Working demo URL or local demo steps:** Web app: https://pasumba.github.io/Kaval/app/ (Flutter web build, Demo mode) · Gimbal simulation: https://pasumba.github.io/Kaval/ · or install the APK built from this repo (or run `flutter run`), log in, choose Kodanad Range, tap post KDN-01. With the reCamera connected (Settings → Live camera → Firebase relay URL or camera URL), stand in front of the camera → pin turns red and an alert appears. Without hardware, Demo mode shows simulated posts and "Demo triggers".
 - **Demo access requirements:** Android phone (arm64) or Chrome for the web build; optional Seeed reCamera running `node-red/kaval_watcher_flow.json`. Internet needed for map tiles, login and the Firebase relay. Officer login needs an account in the database (TODO: Madhav to share a demo officer ID + password with the judges); residents self-register in the app.
 
 ## Participants

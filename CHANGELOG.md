@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T08:30:00+05:30 — Flutter web app published on GitHub Pages
+
+- Changed: `gh-pages` branch gets `app/` (= `flutter build web --release --base-href /Kaval/app/` of main @ e6668b1); README "Working demo" and SUBMISSION demo URL now list https://pasumba.github.io/Kaval/app/ and the gimbal page.
+- Why: Judges asked-for links — the app was only available as an APK before.
+- Validation: Build succeeded; page served with `<base href="/Kaval/app/">`.
+- Limitations: Officer login still needs a database account; Demo mode and Resident sign-up work without one.
+
 ## 2026-10-25T07:50:00+05:30 — Fix: Posts / Alerts lists hidden under the app bar
 
 - Changed: `lib/screens_home.dart` — `PostsTab` and `NotificationsTab` wrapped in `SafeArea(bottom: false)`.
