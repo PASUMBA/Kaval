@@ -3,7 +3,8 @@
 ## Project
 
 - **Project name:** Kaval (കാവൽ)
-- **Short description:** Forest watchers in Kerala guard watch posts all night against elephants entering villages (Kottappady, Kodanad Range) and sandalwood cutters (Marayoor). Kaval is an AI watch post built on a Seeed reCamera (on-device YOLO + microphone loudness rule, no internet needed) pushing to a Firebase relay, plus a Flutter app: Officer mode (map of posts, red pin + alert with sound, snapshot, photo history, Excel export of detections, resident reports) and Resident mode (elephant alert for the nearest post, bee-sound deterrent, one-tap sighting report). Benefits Kerala Forest Department field staff and fringe-village residents.
+- **Event / track:** Devin Hacks Kochi, 24–25 Oct 2026 — Track 1, **Kill the Busywork**.
+- **Short description:** Forest watchers in Kerala sit alone in remote posts all night (Marayoor sandalwood, forest-fringe villages like Kottappady) doing one repetitive job — watch and listen — and still miss small things like an elephant in the dark or the sound of a saw. Kaval takes that job off their hands: an AI watch post on a Seeed reCamera (on-device YOLO + microphone loudness rule) detects animal crossings and trespassing, raises a local LoRa alert (Nano receiver with LED + buzzer) and pushes to a Firebase relay for the Flutter **Kaval app**, where the Forest Department tracks every deployed watcher: Officer mode (map of posts, red pin + alert with sound, snapshot, photo history, Excel export of detections, resident reports) and Resident mode (elephant alert for the nearest post, bee-sound deterrent, one-tap sighting report). Benefits Forest Department field staff and fringe-village residents.
 - **Code repository URL:** https://github.com/PASUMBA/Kaval
 - **Final submitted implementation commit SHA:** `9f242cfd5cdafebacf29d647ff51d0f9bde18f98` (`main` after PR #1 merged; app v1.0.10+17)
 - **Working demo URL or local demo steps:** Install the APK built from this repo (or run `flutter run`), log in, choose Kodanad Range, tap post KDN-01. With the reCamera connected (Settings → Live camera → Firebase relay URL or camera URL), stand in front of the camera → pin turns red and an alert appears. Without hardware, Demo mode shows simulated posts and "Demo triggers".
@@ -41,4 +42,4 @@
 - [x] No credentials or private data are included in the repository or demo instructions.
 - [ ] The organizers' announced submission method and timing have been followed.
 
-Event reference: [DevDay Exchange Community: Kochi on Luma](https://luma.com/z10nz8gp).
+Event reference: Devin Hacks Kochi (24–25 Oct 2026); repository scaffolding from the organizer template [devday-kochi-hackathon-template](https://github.com/anima-regem/devday-kochi-hackathon-template).

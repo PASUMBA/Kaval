@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T06:10:00+05:30 — Event name, track and problem framing
+
+- Changed: `README.md`, `SUBMISSION.md` — event corrected to Devin Hacks Kochi (template text said DevDay Exchange), track "Kill the Busywork" named, short description rewritten around the repetitive night-watch job and what the watcher misses.
+- Why: Match the organizer's tracks PDF and make the track fit explicit.
+- Validation: Re-read both files; claims unchanged otherwise.
+- Limitations: None identified in these checks.
+
 ## 2026-10-25T05:55:00+05:30 — Full-setup photo
 
 - Changed: `docs/images/full_setup.jpg` added at the top of the README "Hardware" section.

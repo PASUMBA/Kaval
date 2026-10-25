@@ -1,11 +1,12 @@
 # Kaval (കാവൽ) — AI watch-post network for the Kerala Forest Department
 
-Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs: **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)** · **[Submission](SUBMISSION.md)** · **[AI usage](AI_USAGE.md)** · **[Change log](CHANGELOG.md)**
+Built solo at **Devin Hacks Kochi** (24–25 Oct 2026), track **1 — Kill the Busywork**. Template docs: **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)** · **[Submission](SUBMISSION.md)** · **[AI usage](AI_USAGE.md)** · **[Change log](CHANGELOG.md)**
 
 ## Project overview
 
 - **Project name:** Kaval (Malayalam for "watch / guard")
-- **Short description:** A forest watcher sits in a watch post all night to spot elephants near villages (Kottappady, Kodanad Range) or sandalwood cutters in the dark (Marayoor). Kaval replaces the eyes and ears of that post with a small AI camera node and gives the Range Officer one phone app to watch every post in the range: a map of posts, red pins on alerts, the latest snapshot, battery, a live alert feed and an Excel export of detections. A second **Resident mode** gives forest-edge villagers an elephant alert for their own post, a bee-sound deterrent and a one-tap sighting report that officers see.
+- **The busywork:** Kerala Forest Department watchers sit alone in remote watch posts all night (Marayoor sandalwood reserve, forest-fringe villages like Kottappady in Kodanad Range) doing one repetitive job: watch and listen. Even then they miss small things — an elephant slipping past in the dark, the faint sound of a saw on a sandalwood tree.
+- **Short description:** Kaval replaces that watching with a small AI camera node (reCamera: on-device detection + microphone) at each post. It spots animal crossings and trespassing, raises a local LoRa alert (LED + buzzer) and reports to the **Kaval app**, where the Range Officer tracks every deployed watcher in one place: a map of posts, red pins on alerts, the latest snapshot, battery, a live alert feed and an Excel export of detections. A second **Resident mode** gives forest-edge villagers an elephant alert for their own post, a bee-sound deterrent and a one-tap sighting report that officers see.
 - **Team:** Madhav ([@PASUMBA](https://github.com/PASUMBA)) — solo
 - **Working demo:** Android APK built from this repo (`flutter build apk`, see below) + one Seeed reCamera running the Node-RED flow in `node-red/`, pushing to a Firebase Realtime Database relay. Demo mode in the app works with no hardware at all.
 - **Technology stack:** Flutter (Dart) Android/web app · Seeed reCamera (RISC-V, stock `yolo11n` model) · Node-RED flow on the camera (HTTP API + cloud push) · Firebase Realtime Database over plain REST (relay, users, reports, event log) · OpenTopoMap tiles via `flutter_map`
