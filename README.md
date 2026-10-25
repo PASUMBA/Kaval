@@ -92,6 +92,12 @@ Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. Wh
   - Detection model: stock `yolo11n` (COCO classes) shipped with the Seeed reCamera, run through [Node-RED](https://nodered.org/) on the camera
   - Post locations are approximate public coordinates of Kerala forest ranges, entered by hand
 
+## Gimbal simulation (web demo)
+
+**Live page:** https://pasumba.github.io/Kaval/ — code in [`web-demo/gimbal/`](web-demo/gimbal/).
+
+A three.js 3D model of the planned pan-tilt gimbal with Manual / Auto scan / Track animal / Home / Live cam modes. It can be driven three ways: simulated targets; the PC webcam with in-browser `coco-ssd` detection; or the real reCamera through a small Node-RED add-on (`web-demo/gimbal/kaval_live_stream.json` → `GET /api/stream.mjpg` + `GET /api/track`) plus the post state from the Firebase relay — so the on-screen gimbal moves from real hardware values. The physical servo gimbal itself was not built; this page shows how it will behave.
+
 ## How Devin was used — a software engineer turned hardware engineer
 
 Devin is usually thought of as a software engineer. For Kaval it was used as the hardware engineer too, and **not a single line of code in this repo was written by hand** — all of it (Flutter app, Node-RED flow, firmware, docs) was written by Devin, directed by Madhav.
@@ -111,6 +117,7 @@ lib/                      Flutter app (main, models, store, backend, export, pic
 assets/                   alert.wav, bee.wav (bee deterrent), kerala_emblem.png
 node-red/                 reCamera Node-RED flows (kaval_watcher_flow.json = import this; deployed_* = backups of what ran on the camera)
 tools/                    small Python scripts that patch the relay push / snapshot history nodes into a flow JSON
+web-demo/gimbal/                3D gimbal simulation page (gh-pages) + Node-RED live-stream add-on
 firmware/lora-transmitter/      XIAO + RYLR998: sends 'H' over LoRa while the alert pin is HIGH
 firmware/lora-receiver/         Nano + RYLR998: LED + buzzer on while alerts arrive
 firmware/esp32-gimbal-bridge/   ESP32 servo/relay sketch — written, NOT used in the demo

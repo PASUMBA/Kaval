@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T07:20:00+05:30 — Gimbal simulation web demo brought into main
+
+- Changed: `web-demo/gimbal/` (index.html from the `gh-pages` branch, `kaval_live_stream.json` Node-RED add-on, README); README "Gimbal simulation" section + layout entry.
+- Why: The gh-pages demo (https://pasumba.github.io/Kaval/) was not visible in the submission repo's main branch.
+- Validation: Files copied byte-for-byte from `gh-pages` (`gimbal.html` was an identical duplicate of `index.html` and is not repeated); links checked.
+- Limitations: Page depends on CDN scripts; physical gimbal not built.
+
 ## 2026-10-25T07:05:00+05:30 — "How Devin was used" section
 
 - Changed: `README.md` new section on Devin as hardware engineer (Node-RED over Cloudflare tunnel, online editors / Devin Desktop, playground framing, no hand-written code); `AI_USAGE.md` note.
