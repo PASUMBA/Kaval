@@ -267,8 +267,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      const PostsTab(),
-      const NotificationsTab(),
+      const SafeArea(bottom: false, child: PostsTab()),
+      const SafeArea(bottom: false, child: NotificationsTab()),
     ];
     return Scaffold(
       drawer: Drawer(

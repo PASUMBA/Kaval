@@ -70,6 +70,32 @@ Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. Wh
 4. **Resident:** sign out → Resident → name, phone, password, post KDN-01 → status card for that post; on an elephant/bear detection the alert banner shows and the bee sound starts; tap **Report a sighting** → appears in the officer's Alerts tab.
 5. Without hardware: keep **Demo mode** and use the "Demo triggers" chips on a post's detail page.
 
+### App screenshots (Flutter web build, Demo mode)
+
+Captured from the Flutter web build (`flutter build web`) running in Demo mode — the same screens as the Android APK, no hardware needed. Phone-size viewport, 2x scale.
+
+| Officer login | Resident login | Range select | Home map |
+|---|---|---|---|
+| ![Officer login](docs/images/app/01_login_officer.png) | ![Resident login](docs/images/app/02_login_resident.png) | ![Range select](docs/images/app/03_range_select.png) | ![Home map](docs/images/app/04_home_map.png) |
+
+| Main menu (drawer) | Post quick-peek | Post detail | Posts list |
+|---|---|---|---|
+| ![Main menu](docs/images/app/05_menu_drawer.png) | ![Quick-peek](docs/images/app/06_post_quick_peek.png) | ![Post detail](docs/images/app/07_post_detail.png) | ![Posts list](docs/images/app/08_posts_list.png) |
+
+| Alerts tab | Export Excel | Settings | Resident home |
+|---|---|---|---|
+| ![Alerts](docs/images/app/14_alerts.png) | ![Export Excel](docs/images/app/09_export_excel.png) | ![Settings](docs/images/app/10_settings.png) | ![Resident home](docs/images/app/11_resident_home.png) |
+
+| Resident: elephant alert + bee sound | Resident: report a sighting |
+|---|---|
+| ![Elephant alert](docs/images/app/12_resident_elephant_alert.png) | ![Report sighting](docs/images/app/13_resident_report_sighting.png) |
+
+- **Home map** — OpenTopoMap with one pin per watch post (green OK, red alert, grey offline), alert count card, DEMO chip, red banner for the latest detection.
+- **Main menu** — officer name/range, Export Excel, Settings (Demo / Live camera), Change range, Sign out.
+- **Quick-peek / detail** — battery, last detection, heartbeat, location, gimbal angles, snapshot + history; "Demo triggers" chips simulate elephant / person / chainsaw / gunshot / fire.
+- **Alerts** — detection notifications and resident sighting reports (relay was blocked while capturing, so only demo data is shown).
+- **Resident mode** — ALL CLEAR / ELEPHANT NEARBY card in English + Malayalam, bee-sound deterrent, sighting report with photo.
+
 ### Current status
 
 - **Working features:** see table above.
@@ -115,6 +141,7 @@ In Madhav's words: *"I was creating a playground, dragging the software and hard
 ```
 lib/                      Flutter app (main, models, store, backend, export, pick_*/download_* web helpers, screens_auth, screens_home, screens_resident, theme)
 assets/                   alert.wav, bee.wav (bee deterrent), kerala_emblem.png
+docs/images/              hardware photos; docs/images/app/ = Flutter app screenshots
 node-red/                 reCamera Node-RED flows (kaval_watcher_flow.json = import this; deployed_* = backups of what ran on the camera)
 tools/                    small Python scripts that patch the relay push / snapshot history nodes into a flow JSON
 web-demo/gimbal/                3D gimbal simulation page (gh-pages) + Node-RED live-stream add-on

@@ -4,6 +4,20 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T07:50:00+05:30 — Fix: Posts / Alerts lists hidden under the app bar
+
+- Changed: `lib/screens_home.dart` — `PostsTab` and `NotificationsTab` wrapped in `SafeArea(bottom: false)`.
+- Why: The home `Scaffold` uses `extendBodyBehindAppBar` for the full-screen map; the two list tabs ignored that padding, so their first row was drawn under the app bar (seen while taking screenshots).
+- Validation: `flutter analyze` (no new issues), `flutter build web`, screenshots re-taken.
+- Limitations: Not re-tested on the Android APK.
+
+## 2026-10-25T07:45:00+05:30 — Flutter app screenshots
+
+- Changed: `docs/images/app/` (14 screenshots: officer/resident login, range select, home map, drawer menu, post quick-peek + detail, posts list, alerts, Excel export, settings, resident home / elephant alert / report sighting); README "App screenshots" section + layout entry.
+- Why: Judges can see every page of the app without installing the APK.
+- Validation: Captured from `flutter build web` (Flutter 3.35.4) served locally, Demo mode, 412x880 viewport via Chrome DevTools; Firebase relay blocked during capture so no real resident data appears.
+- Limitations: Web build; no live camera snapshot in the screenshots.
+
 ## 2026-10-25T07:20:00+05:30 — Gimbal simulation web demo brought into main
 
 - Changed: `web-demo/gimbal/` (index.html from the `gh-pages` branch, `kaval_live_stream.json` Node-RED add-on, README); README "Gimbal simulation" section + layout entry.
