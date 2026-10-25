@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T06:40:00+05:30 — LoRa TX/RX sketches added
+
+- Changed: `firmware/lora-transmitter/lora-transmitter.ino` (XIAO + RYLR998, sends 'H' while alert pin HIGH), `firmware/lora-receiver/lora-receiver.ino` (Nano + RYLR998, LED + buzzer); README/SUBMISSION updated (LoRa link tested live, sketches listed).
+- Why: The LoRa link was demonstrated at the event; its code belongs in the repo.
+- Validation: Sketches follow the RYLR998 setup used in the demo (115200 baud, address 0, network 10); compile not re-run from this machine.
+- Limitations: Point-to-point, one node; pin numbers must match the wiring on the boards.
+
 ## 2026-10-25T06:20:00+05:30 — Problem origin and upgrade path
 
 - Changed: `README.md`, `SUBMISSION.md` — note that the problem was suggested by Forest Department staff during Fauna Flash field testing; "Upgrade path (designed, not built)" bullet (pan-tilt gimbal, thermal module, trained model, solar power).

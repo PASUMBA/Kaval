@@ -46,7 +46,7 @@ One prototype post on a perfboard: Seeed reCamera (the AI watcher, running the N
 | --- | --- |
 | ![LoRa receiver top view](docs/images/receiver_top.jpg) | ![LoRa receiver in hand](docs/images/receiver_handheld.jpg) |
 
-Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. When the camera node sends an alert over LoRa, the LED lights and the buzzer sounds — a local warning that needs no internet or phone. (LoRa TX/RX sketches are not in this repo yet.)
+Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. When the camera node sends an alert over LoRa, the LED lights and the buzzer sounds — a local warning that needs no internet or phone. Tested live at the event (video on request). Sketches: `firmware/lora-transmitter/` (XIAO) and `firmware/lora-receiver/` (Nano).
 
 ### Run the project
 
@@ -82,7 +82,7 @@ Arduino Nano + RYLR998 LoRa module + red LED + buzzer on a 5×7 cm perfboard. Wh
   - Camera LED alert output (GPIO490) is disabled by default — it browned out the USB-powered camera.
   - The Government of Kerala emblem in the app is a demo mock-up for a Forest Department audience; the app is not an official or endorsed product.
   - Report photos are stored as base64 in the database (fine for a demo, not for scale).
-  - LoRa link: one camera node → one receiver (LED + buzzer) was built and shown at the event; the LoRa TX/RX sketches are not yet committed here.
+  - LoRa link: one camera node → one receiver (LED + buzzer), point-to-point, RYLR998 address 0 / network 10; tested live at the event.
   - Not built (future work): servo gimbal tracking (`firmware/esp32-gimbal-bridge/` sketch exists but was never wired or tested), multi-hop LoRa between posts, physical deterrent at the post, multiple real cameras.
 - **Upgrade path (designed, not built):** pan-tilt gimbal so the camera follows the animal/intruder (ESP32 sketch in `firmware/`, not wired in the demo); thermal camera module for pitch-dark and foggy nights; a trained Kerala-wildlife / chainsaw model instead of stock `yolo11n` and the loudness rule; solar + battery power at the post.
 - **Libraries, APIs, and public datasets used:**
@@ -99,6 +99,8 @@ lib/                      Flutter app (main, models, store, backend, export, pic
 assets/                   alert.wav, bee.wav (bee deterrent), kerala_emblem.png
 node-red/                 reCamera Node-RED flows (kaval_watcher_flow.json = import this; deployed_* = backups of what ran on the camera)
 tools/                    small Python scripts that patch the relay push / snapshot history nodes into a flow JSON
+firmware/lora-transmitter/      XIAO + RYLR998: sends 'H' over LoRa while the alert pin is HIGH
+firmware/lora-receiver/         Nano + RYLR998: LED + buzzer on while alerts arrive
 firmware/esp32-gimbal-bridge/   ESP32 servo/relay sketch — written, NOT used in the demo
 android/, web/            Flutter platform folders
 ```
