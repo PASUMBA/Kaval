@@ -26,6 +26,10 @@ Built solo at the **DevDay Exchange Community Hackathon: Kochi**. Template docs:
 
 ### Hardware (as built at the event)
 
+![Full Kaval demo setup: camera node (top) and LoRa receiver (bottom)](docs/images/full_setup.jpg)
+
+*The complete demo: camera node (top) and LoRa receiver with LED + buzzer (bottom).*
+
 **Camera node — post KDN-01**
 
 | | | |

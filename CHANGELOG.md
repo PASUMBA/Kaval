@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T05:55:00+05:30 — Full-setup photo
+
+- Changed: `docs/images/full_setup.jpg` added at the top of the README "Hardware" section.
+- Why: One picture showing camera node and LoRa receiver together.
+- Validation: Image renders in README.
+- Limitations: None identified in these checks.
+
 ## 2026-10-25T05:45:00+05:30 — LoRa receiver photos; hardware section corrected
 
 - Changed: `docs/images/receiver_*.jpg`, README "Hardware" section (camera node = reCamera + XIAO + RYLR998 LoRa TX; receiver = Nano + RYLR998 + LED + buzzer), README/SUBMISSION limitations updated (LoRa link built, sketches not yet committed).
