@@ -4,6 +4,13 @@ Each meaningful project change during the event, newest first. Timestamps are IS
 
 ## Event build log
 
+## 2026-10-25T06:20:00+05:30 — Problem origin and upgrade path
+
+- Changed: `README.md`, `SUBMISSION.md` — note that the problem was suggested by Forest Department staff during Fauna Flash field testing; "Upgrade path (designed, not built)" bullet (pan-tilt gimbal, thermal module, trained model, solar power).
+- Why: Judges should know the problem is real and where the project goes next.
+- Validation: Re-read both files; upgrade items are clearly marked as not built.
+- Limitations: None identified in these checks.
+
 ## 2026-10-25T06:10:00+05:30 — Event name, track and problem framing
 
 - Changed: `README.md`, `SUBMISSION.md` — event corrected to Devin Hacks Kochi (template text said DevDay Exchange), track "Kill the Busywork" named, short description rewritten around the repetitive night-watch job and what the watcher misses.
